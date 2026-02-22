@@ -249,17 +249,22 @@ profiles
   created_at      TIMESTAMPTZ
   updated_at      TIMESTAMPTZ
 
-usual_suspects
+groups
   id              UUID PK
-  user_id         UUID FK → profiles.id
   name            TEXT
-  revtag          TEXT
-  sort_order      INT
+  created_by      UUID FK → profiles.id
+  created_at      TIMESTAMPTZ
+
+group_members
+  group_id        UUID FK → groups.id
+  user_id         UUID FK → profiles.id
+  joined_at       TIMESTAMPTZ
+  PK (group_id, user_id)
 
 game_sessions
   id              UUID PK
   created_by      UUID FK → profiles.id
-  group_id        UUID FK → groups.id (nullable)
+  group_id        UUID FK → groups.id
   session_date    DATE
   currency        TEXT
   default_buy_in  TEXT
@@ -272,7 +277,7 @@ game_sessions
 game_players
   id              UUID PK
   session_id      UUID FK → game_sessions.id
-  user_id         UUID FK → profiles.id (nullable — non-account players)
+  user_id         UUID FK → profiles.id (nullable — guests)
   player_name     TEXT
   buy_in          NUMERIC
   cash_out        NUMERIC
@@ -284,7 +289,8 @@ game_players
 ### Step 2.3 — Row-Level Security (RLS)
 
 - `profiles`: users can read/update only their own row
-- `usual_suspects`: users can CRUD only their own suspects
+- `groups`: creator can CRUD; group members can read (added in Phase 3)
+- `group_members`: users can CRUD their own membership
 - `game_sessions`: creator can CRUD; group members can read (added in Phase 3)
 - `game_players`: session creator can CRUD; the linked user can read their own records
 
