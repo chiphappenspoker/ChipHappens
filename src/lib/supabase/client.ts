@@ -9,14 +9,7 @@ function createSupabaseClient(): SupabaseClient {
   if (!supabaseUrl || !supabaseAnonKey) {
     return createClient(PLACEHOLDER_URL, 'placeholder-anon-key');
   }
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      // Avoid "Acquiring an exclusive Navigator LockManager lock ... timed out waiting 10000ms"
-      // when another tab or a stuck auth op holds the lock. Increase wait; canary SDK also
-      // recovers from orphaned locks after 5s (npm install @supabase/supabase-js@canary).
-      lockAcquireTimeout: 30000,
-    },
-  });
+  return createClient(supabaseUrl, supabaseAnonKey);
 }
 
 export const supabase = createSupabaseClient();
