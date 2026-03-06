@@ -9,6 +9,8 @@ import { SettingsModal } from '../settings/SettingsModal';
 import { SignInModal } from './SignInModal';
 import { useSettings } from '@/hooks/useSettings';
 
+const PROFILE_ONBOARDING_KEY = 'chiphappens:profile_onboarding';
+
 export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [signInOpen, setSignInOpen] = useState(false);
@@ -17,6 +19,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
+
+  // After first sign-in, open profile modal so user can set name and revtag
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = `${PROFILE_ONBOARDING_KEY}:${user.id}`;
+    try {
+      if (typeof window !== 'undefined' && !window.localStorage.getItem(key)) {
+        window.localStorage.setItem(key, '1');
+        setProfileOpen(true);
+      }
+    } catch {
+      /* ignore localStorage errors */
+    }
+  }, [user?.id]);
 
   // Close account menu on outside click
   useEffect(() => {

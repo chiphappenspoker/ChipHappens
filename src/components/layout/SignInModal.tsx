@@ -46,7 +46,10 @@ export function SignInModal({ open, onClose }: { open: boolean; onClose: () => v
     const result = await fn(email, password);
     if (result.error) setError(result.error);
     setSubmitting(false);
-    if (!result.error) onClose();
+    if (!result.error && mode === 'signup') {
+      setInfo('Please check your email and click the link to verify your account. You can sign in after verification.');
+    }
+    if (!result.error && mode === 'signin') onClose();
   };
 
   // Helper to clear info and error on navigation
