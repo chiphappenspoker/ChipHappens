@@ -1,7 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase, isSupabasePlaceholder } from '../supabase/client';
+import { BASE_PATH } from '../constants';
 import { startSyncEngine, stopSyncEngine } from '../sync/sync-engine';
 import { migrateLocalToCloud, needsMigration } from './migrate-local-to-cloud';
+
+/** Full URL for redirects after email confirmation (must match Supabase Redirect URLs allow list). */
+function getEmailRedirectUrl(): string {
+  if (typeof window === 'undefined') return '';
+  const origin = window.location.origin;
+  return origin.endsWith('/') ? `${origin.slice(0, -1)}${BASE_PATH}` : `${origin}${BASE_PATH}`;
+}
 
 async function ensureProfile(userId: string, metadata: { full_name?: string; name?: string; email?: string }): Promise<void> {
   // Only create a profile if one does not already exist to avoid overwriting
@@ -88,11 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? { error: wrapAuthError(error.message) } : {};
   };
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const redirectTo = getEmailRedirectUrl();
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+    });
     return error ? { error: wrapAuthError(error.message) } : {};
   };
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const redirectTo = getEmailRedirectUrl();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: redirectTo ? { redirectTo } : undefined,
+    });
     return error ? { error: wrapAuthError(error.message) } : {};
   };
   const signOut = async () => {
