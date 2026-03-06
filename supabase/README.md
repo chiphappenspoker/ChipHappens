@@ -61,3 +61,14 @@ npx supabase start
 ```
 
 Then link to the local project and push migrations as above, or use the local DB URL in your app.
+
+## Email templates (signup confirmation, etc.)
+
+The default Supabase signup confirmation email does not mention ChipHappens. To use a branded subject and body:
+
+- **Local / self-hosted:** Already configured in `config.toml` and `supabase/templates/confirmation.html`. Restart after changing: `supabase stop && supabase start`.
+- **Hosted Supabase (Dashboard):** Go to [Authentication → Email Templates](https://supabase.com/dashboard/project/_/auth/templates). Under **Confirm signup**, set:
+  - **Subject:** e.g. `Confirm your ChipHappens signup`
+  - **Body:** Copy the HTML from `supabase/templates/confirmation.html` (keep the variables `{{ .ConfirmationURL }}`, etc.). Save.
+
+Other templates (invite, recovery, magic link, etc.) can be customized the same way in `config.toml` and Dashboard.

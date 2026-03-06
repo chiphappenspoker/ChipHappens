@@ -5,6 +5,9 @@
   "id": "/ChipHappens/",
   "start_url": "/ChipHappens/",
   "scope": "/ChipHappens/",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "navigate-new"]
+  },
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#09090b",

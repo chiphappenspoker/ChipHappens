@@ -231,6 +231,11 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Signup confirmation email (ChipHappens branded). For hosted Supabase, set subject and body in Dashboard → Authentication → Email Templates.
+[auth.email.template.confirmation]
+subject = "Confirm your ChipHappens signup"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true
