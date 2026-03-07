@@ -35,7 +35,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ── Fetch: network-first for navigation, cache-first for assets ───────────────
+// ── Fetch: network-first for navigation and API, cache-first for same-origin assets ──
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
@@ -45,6 +45,8 @@ self.addEventListener('fetch', (event) => {
   if (!url.protocol.startsWith('http')) return;
 
   const isNavigation = request.mode === 'navigate';
+  // Never cache Supabase (and other external APIs) so list/group updates are visible in PWA
+  const isApi = url.hostname.endsWith('.supabase.co') || url.hostname === 'supabase.co';
 
   if (isNavigation) {
     event.respondWith(
@@ -68,6 +70,9 @@ self.addEventListener('fetch', (event) => {
           return caches.match('/ChipHappens/') || caches.match('/ChipHappens/index.html');
         })
     );
+  } else if (isApi) {
+    // API requests: network-only so new groups/settings show up after mutations
+    event.respondWith(fetch(request));
   } else {
     event.respondWith(
       caches.match(request).then(
