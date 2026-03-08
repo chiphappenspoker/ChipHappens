@@ -403,14 +403,18 @@ export function GroupsPanel() {
                           readOnly
                           type="text"
                           className="input-field flex-1 min-w-0 font-mono text-sm"
-                          value={`${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
+                          value={editingGroup.invite_code
+                            ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
+                            : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
                           aria-label="Group invitation link"
                         />
                         <button
                           type="button"
                           className="btn btn-primary whitespace-nowrap"
                           onClick={async () => {
-                            const url = `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
+                            const url = editingGroup.invite_code
+                              ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
+                              : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
                             try {
                               await navigator.clipboard.writeText(url);
                               setCopiedInvite(true);

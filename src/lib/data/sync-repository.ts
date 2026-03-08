@@ -45,6 +45,9 @@ const syncRepository: Repository = {
   async getGroups(): Promise<DbGroup[]> {
     return cloudRepository.getGroups();
   },
+  async getGroupByInviteCode(inviteCode: string): Promise<DbGroup | null> {
+    return cloudRepository.getGroupByInviteCode(inviteCode);
+  },
   async getGroupMembers(groupId: string): Promise<UsualSuspect[]> {
     return cloudRepository.getGroupMembers(groupId);
   },

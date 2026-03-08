@@ -122,6 +122,16 @@ export const cloudRepository: Repository = {
     await supabase.from('game_players').delete().eq('id', playerId);
   },
 
+  async getGroupByInviteCode(inviteCode: string): Promise<DbGroup | null> {
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*')
+      .eq('invite_code', inviteCode)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as DbGroup;
+  },
+
   async getGroups() {
     const userId = await getCurrentUserId();
     if (!userId) return [];

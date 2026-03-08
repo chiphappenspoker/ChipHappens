@@ -61,6 +61,9 @@ export const localRepository: Repository = {
   async getGroups() {
     return []; // local-only: no groups (groups are cloud-only)
   },
+  async getGroupByInviteCode(): Promise<DbGroup | null> {
+    return Promise.resolve(null);
+  },
   async getGroupMembers() {
     return [];
   },

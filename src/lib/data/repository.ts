@@ -31,6 +31,7 @@ export interface Repository {
   saveGamePlayer(player: DbGamePlayer): Promise<void>;
   deleteGamePlayer(playerId: string, sessionId: string): Promise<void>;
   getGroups(): Promise<DbGroup[]>;
+  getGroupByInviteCode(inviteCode: string): Promise<DbGroup | null>;
   getGroupMembers(groupId: string): Promise<UsualSuspect[]>;
   getGroupMembersWithIds(groupId: string): Promise<GroupMemberWithId[]>;
   createGroup(params: CreateGroupParams): Promise<DbGroup>;
