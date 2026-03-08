@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import { useGroups } from '@/hooks/useGroups';
 import { getGroupLeaderboard } from '@/lib/data/stats';
 import { fmt } from '@/lib/calc/formatting';
+import { formatLeaderboardRank } from '@/lib/calc/leaderboard-rank';
 import { useEffect, useState } from 'react';
 import type { LeaderboardRow } from '@/lib/types';
 import { NavMenu } from '@/components/layout/NavMenu';
@@ -243,35 +244,45 @@ export default function LeaderboardPage() {
             <p className="muted-text">Loading…</p>
           ) : rows.length === 0 ? (
             <p className="muted-text">No data for this group and period.</p>
+          ) : displayRows.length === 0 ? (
+            <p className="muted-text">
+              {currentCategory?.id === 'sessions'
+                ? 'No sessions in this period.'
+                : `No players with positive ${currentCategory?.label ?? 'metric'} in this period.`}
+            </p>
           ) : (
             <div className="table-wrap">
               <table className="page-payout-table">
                 <thead>
                   <tr>
-                    <th className="text-left">#</th>
+                    <th className="text-left">Rank</th>
                     <th className="text-left">Name</th>
-                    <th className="text-right">Profit</th>
-                    <th className="text-right">Sessions</th>
-                    <th className="text-right">W</th>
-                    <th className="text-right">L</th>
-                    <th className="text-right">Win %</th>
+                    <th className="text-right">
+                      {currentCategory?.id === 'total_pnl' && 'Profit'}
+                      {currentCategory?.id === 'pnl_per_session' && 'Avg/session'}
+                      {currentCategory?.id === 'largest_pnl' && 'Largest session'}
+                      {currentCategory?.id === 'sessions' && 'Sessions'}
+                      {currentCategory?.id === 'win_rate' && 'Win %'}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {displayRows.map((row, index) => (
-                      <tr key={row.user_id}>
-                        <td>{index + 1}</td>
-                        <td>{row.display_name || '—'}</td>
-                        <td className="text-right font-mono tabular-nums">
-                          {fmt(row.total_profit)}
-                          {currency ? ` ${currency}` : ''}
-                        </td>
-                        <td className="text-right">{row.total_sessions}</td>
-                        <td className="text-right">{row.win_count}</td>
-                        <td className="text-right">{row.loss_count}</td>
-                        <td className="text-right font-mono tabular-nums">{fmt(winRate(row))}%</td>
-                      </tr>
-                    ))}
+                    <tr key={row.user_id}>
+                      <td>{formatLeaderboardRank(index + 1)}</td>
+                      <td>{row.display_name || '—'}</td>
+                      <td className="text-right font-mono tabular-nums">
+                        {currentCategory?.id === 'total_pnl' &&
+                          `${fmt(row.total_profit)}${currency ? ` ${currency}` : ''}`}
+                        {currentCategory?.id === 'pnl_per_session' &&
+                          `${fmt(row.avg_profit)}${currency ? ` ${currency}` : ''}`}
+                        {currentCategory?.id === 'largest_pnl' &&
+                          `${fmt(row.max_session_profit)}${currency ? ` ${currency}` : ''}`}
+                        {currentCategory?.id === 'sessions' && row.total_sessions}
+                        {currentCategory?.id === 'win_rate' && `${fmt(winRate(row))}%`}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
