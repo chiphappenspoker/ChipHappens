@@ -136,18 +136,18 @@ export function SessionDetailContent({ sessionId }: { sessionId: string }) {
                 <thead>
                   <tr>
                     <th className="text-left">Player</th>
-                    <th className="text-right font-mono tabular-nums">Buy-in</th>
-                    <th className="text-right font-mono tabular-nums">Cash out</th>
-                    <th className="text-right font-mono tabular-nums">Net</th>
+                    <th className="text-right tabular-nums">Buy-in</th>
+                    <th className="text-right tabular-nums">Cash out</th>
+                    <th className="text-right tabular-nums">Net</th>
                   </tr>
                 </thead>
                 <tbody>
                   {players.map((p) => (
                     <tr key={p.id}>
                       <td className="text-left">{p.player_name}</td>
-                      <td className="text-right font-mono tabular-nums">{fmt(p.buy_in)}</td>
-                      <td className="text-right font-mono tabular-nums">{fmt(p.cash_out)}</td>
-                      <td className="text-right font-mono tabular-nums">{fmt(p.net_result)}</td>
+                      <td className="text-right tabular-nums">{fmt(p.buy_in)}</td>
+                      <td className="text-right tabular-nums">{fmt(p.cash_out)}</td>
+                      <td className="text-right tabular-nums">{fmt(p.net_result)}</td>
                     </tr>
                   ))}
                 </tbody>

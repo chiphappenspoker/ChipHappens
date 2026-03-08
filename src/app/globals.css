@@ -74,6 +74,7 @@
   html, body { height: 100%; }
   body {
     margin: 0;
+    font-family: var(--font-sans);
     background-color: var(--color-bg);
     background: radial-gradient(1200px 700px at 80% -10%, #15151a 0%, var(--color-bg) 60%);
     color: var(--color-text);

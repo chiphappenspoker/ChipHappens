@@ -314,7 +314,7 @@ export default function LeaderboardPage() {
                     <tr key={row.user_id}>
                       <td>{formatLeaderboardRank(index + 1)}</td>
                       <td>{row.display_name || '—'}</td>
-                      <td className="text-right font-mono tabular-nums">
+                      <td className="text-right tabular-nums">
                         {currentCategory?.id === 'total_pnl' &&
                           `${fmt(row.total_profit)}${currency ? ` ${currency}` : ''}`}
                         {currentCategory?.id === 'pnl_per_session' &&
