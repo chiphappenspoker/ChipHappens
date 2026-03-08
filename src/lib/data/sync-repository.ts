@@ -26,6 +26,9 @@ const syncRepository: Repository = {
   async getGameSessionsForUser(filters?: GameSessionsForUserFilters) {
     return cloudRepository.getGameSessionsForUser(filters);
   },
+  async getGameSession(sessionId: string) {
+    return cloudRepository.getGameSession(sessionId);
+  },
   async saveGameSession(session: DbGameSession) {
     await localRepository.saveGameSession(session);
     await enqueue('game_sessions', 'upsert', session as unknown as Record<string, unknown>);

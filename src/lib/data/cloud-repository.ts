@@ -116,6 +116,16 @@ export const cloudRepository: Repository = {
     return list;
   },
 
+  async getGameSession(sessionId: string): Promise<DbGameSession | null> {
+    const { data, error } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as DbGameSession;
+  },
+
   async saveGameSession(session: DbGameSession) {
     await supabase.from('game_sessions').upsert(
       {

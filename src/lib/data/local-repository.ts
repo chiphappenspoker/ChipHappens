@@ -29,6 +29,11 @@ export const localRepository: Repository = {
     if (filters.toDate != null) out = out.filter((s) => s.session_date <= filters!.toDate!);
     return out;
   },
+  async getGameSession(sessionId: string): Promise<DbGameSession | null> {
+    if (useDexie()) return (await db.sessions.get(sessionId)) ?? null;
+    const sessions = getLocalStorage<DbGameSession[]>(SESSIONS_STORAGE_KEY) ?? [];
+    return sessions.find((s) => s.id === sessionId) ?? null;
+  },
   async saveGameSession(session) {
     if (!useDexie()) {
       const sessions = getLocalStorage<DbGameSession[]>(SESSIONS_STORAGE_KEY) ?? [];

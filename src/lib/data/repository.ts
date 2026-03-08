@@ -33,6 +33,7 @@ export interface Repository {
   saveSettings(data: SettingsData): Promise<void>;
   getGameSessions(): Promise<DbGameSession[]>;
   getGameSessionsForUser(filters?: GameSessionsForUserFilters): Promise<DbGameSession[]>;
+  getGameSession(sessionId: string): Promise<DbGameSession | null>;
   saveGameSession(session: DbGameSession): Promise<void>;
   getGamePlayers(sessionId: string): Promise<DbGamePlayer[]>;
   saveGamePlayer(player: DbGamePlayer): Promise<void>;
