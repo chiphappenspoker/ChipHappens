@@ -174,13 +174,17 @@ export const cloudRepository: Repository = {
   },
 
   async getGroupByInviteCode(inviteCode: string): Promise<DbGroup | null> {
-    const { data, error } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('invite_code', inviteCode)
-      .maybeSingle();
-    if (error || !data) return null;
-    return data as DbGroup;
+    const code = (inviteCode ?? '').trim();
+    if (!code) return null;
+    const { data, error } = await supabase.rpc('get_group_by_invite_code', {
+      p_invite_code: code,
+    });
+    if (error) return null;
+    // PostgREST returns array for setof; handle single object in case of one row
+    if (Array.isArray(data) && data.length > 0) return data[0] as DbGroup;
+    if (data && typeof data === 'object' && !Array.isArray(data) && 'id' in data)
+      return data as DbGroup;
+    return null;
   },
 
   async getGroups() {

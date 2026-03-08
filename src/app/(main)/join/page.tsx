@@ -6,7 +6,8 @@ import { JoinByCodeContent } from './[code]/JoinByCodeContent';
 
 function JoinPageContent() {
   const searchParams = useSearchParams();
-  const code = searchParams.get('code') ?? '';
+  const raw = searchParams.get('code') ?? '';
+  const code = raw ? decodeURIComponent(raw) : '';
   return <JoinByCodeContent code={code} />;
 }
 
