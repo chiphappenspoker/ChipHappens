@@ -8,6 +8,8 @@ import { useGroups } from '@/hooks/useGroups';
 import { useGameHistory } from '@/hooks/useGameHistory';
 import { NavMenu } from '@/components/layout/NavMenu';
 import { SessionDetailContent } from './SessionDetailContent';
+import { getLocalStorage, setLocalStorage } from '@/lib/storage/local-storage';
+import { PAYOUT_STORAGE_KEY, SELECTED_GROUP_CHANGED_EVENT } from '@/lib/constants';
 
 function formatSessionDate(iso: string): string {
   try {
@@ -96,7 +98,20 @@ function HistoryPageContent() {
               <select
                 className="input-field w-full"
                 value={filters.groupId ?? ''}
-                onChange={(e) => setFilters({ groupId: e.target.value || null })}
+                onChange={(e) => {
+                  const value = e.target.value || null;
+                  setFilters({ groupId: value });
+                  const existing = getLocalStorage<Record<string, unknown>>(PAYOUT_STORAGE_KEY);
+                  const next = existing
+                    ? { ...existing, selectedGroupId: value ?? undefined }
+                    : { selectedGroupId: value ?? undefined };
+                  setLocalStorage(PAYOUT_STORAGE_KEY, next);
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(
+                      new CustomEvent(SELECTED_GROUP_CHANGED_EVENT, { detail: { selectedGroupId: value } })
+                    );
+                  }
+                }}
               >
                 <option value="">All groups</option>
                 {groups.map((g) => (

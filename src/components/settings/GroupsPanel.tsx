@@ -71,6 +71,8 @@ export function GroupsPanel() {
   const [leaderboardRows, setLeaderboardRows] = useState<LeaderboardRow[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  type SubModal = 'settings' | 'players' | 'recent-games' | 'leaderboard' | 'invite' | null;
+  const [subModal, setSubModal] = useState<SubModal>(null);
 
   const isCreator = useMemo(
     () => Boolean(editingGroup && user && editingGroup.created_by === user.id),
@@ -112,6 +114,10 @@ export function GroupsPanel() {
       loadMembers().catch(() => setMembers([]));
     }
   }, [view, loadMembers]);
+
+  useEffect(() => {
+    if (view !== 'edit') setSubModal(null);
+  }, [view]);
 
   useEffect(() => {
     if (view !== 'edit' || !editingGroupId || !user) {
@@ -368,63 +374,23 @@ export function GroupsPanel() {
                     <p className="text-sm muted-text mb-2">You are a member of this group. Members appear in the player list when this group is selected.</p>
                   </section>
                   <section>
-                    <h3 className="font-semibold mb-2">Players</h3>
-                    {members.length === 0 ? (
-                      <p className="text-sm muted-text mb-2">No members yet.</p>
-                    ) : (
-                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
-                        {members.map((m) => {
-                          const role = m.user_id === editingGroup.created_by ? 'owner' : 'member';
-                          return (
-                            <li key={m.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
-                              <span className="truncate min-w-0">{m.name}</span>
-                              <span className="shrink-0 text-xs px-2 py-0.5 rounded muted-text bg-[rgba(255,255,255,0.06)]">{role}</span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </section>
-                  <section>
-                    <h3 className="font-semibold mb-2">Recent games</h3>
-                    {loadingSessions ? (
-                      <p className="text-sm muted-text mb-2">Loading…</p>
-                    ) : recentSessions.length === 0 ? (
-                      <p className="text-sm muted-text mb-2">No sessions yet.</p>
-                    ) : (
-                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
-                        {recentSessions.map((s) => (
-                          <li key={s.id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
-                            <span className="truncate min-w-0">{formatSessionDateTime(s.created_at || `${s.session_date}T00:00:00`)}</span>
-                            <Link href={`${BASE_PATH}/history?sessionId=${s.id}`} className="shrink-0 text-sm text-[var(--color-link)] hover:underline">
-                              View
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </section>
-                  <section>
-                    <h3 className="font-semibold mb-2">Leaderboard</h3>
-                    {loadingLeaderboard ? (
-                      <p className="text-sm muted-text mb-2">Loading…</p>
-                    ) : leaderboardRows.length === 0 ? (
-                      <p className="text-sm muted-text mb-2">No data yet.</p>
-                    ) : (
-                      <>
-                        <ul className="list-none p-0 m-0 mb-3 space-y-1">
-                          {leaderboardRows.map((r) => (
-                            <li key={r.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
-                              <span className="truncate min-w-0">{r.display_name || '—'}</span>
-                              <span className="shrink-0 text-sm">{fmt(r.total_profit)}{editingGroup?.currency ? ` ${editingGroup.currency}` : ''}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <Link href={`${BASE_PATH}/leaderboard`} className="text-sm text-[var(--color-link)] hover:underline">
-                          View full leaderboard
-                        </Link>
-                      </>
-                    )}
+                    <ul className="list-none p-0 m-0 space-y-1">
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('players')}>
+                          Players
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('recent-games')}>
+                          Recent games
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('leaderboard')}>
+                          Leaderboard
+                        </button>
+                      </li>
+                    </ul>
                   </section>
                   <section className="pt-3 border-t border-[var(--color-outline)]">
                     <h3 className="font-semibold mb-2">Leave group</h3>
@@ -449,136 +415,33 @@ export function GroupsPanel() {
               ) : (
                 <>
                   <section>
-                    <h3 className="font-semibold mb-2">Group settings</h3>
-                    <form onSubmit={handleSaveSettings} className="space-y-3">
-                      <label className="settings-field block">
-                        <span className="settings-label">Name</span>
-                        <input className="input-field w-full" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-                      </label>
-                      <label className="settings-field block">
-                        <span className="settings-label">Currency</span>
-                        <select className="input-field w-full" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                          {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </label>
-                      <label className="settings-field block">
-                        <span className="settings-label">Default buy-in</span>
-                        <input className="input-field w-full" type="text" value={defaultBuyIn} onChange={(e) => setDefaultBuyIn(e.target.value)} />
-                      </label>
-                      <label className="settings-field block">
-                        <span className="settings-label">Settlement mode</span>
-                        <select className="input-field w-full" value={settlementMode} onChange={(e) => setSettlementMode(e.target.value as 'greedy' | 'banker')}>
-                          {SETTLEMENT_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-                        </select>
-                      </label>
-                      <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save settings'}</button>
-                    </form>
-                  </section>
-
-                  <section>
-                    <h3 className="font-semibold mb-2">Players</h3>
-                    <p className="text-sm muted-text mb-2">Members appear in the "usual suspects" list when this group is selected.</p>
-                    {members.length === 0 ? (
-                      <p className="text-sm muted-text mb-2">No members yet.</p>
-                    ) : (
-                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
-                        {members.map((m) => {
-                          const role = m.user_id === editingGroup.created_by ? 'owner' : 'member';
-                          return (
-                            <li key={m.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
-                              <span className="truncate min-w-0">{m.name}</span>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-xs px-2 py-0.5 rounded muted-text bg-[rgba(255,255,255,0.06)]">{role}</span>
-                                {role === 'member' && (
-                                  <button type="button" className="w-5 h-5 flex items-center justify-center rounded hover:bg-[rgba(255,255,255,0.1)] muted-text hover:text-[var(--color-text)] text-sm" onClick={() => handleRemoveMember(m.user_id)} disabled={submitting} aria-label={`Remove ${m.name}`}>
-                                    ×
-                                  </button>
-                                )}
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </section>
-
-                  <section>
-                    <h3 className="font-semibold mb-2">Recent games</h3>
-                    {loadingSessions ? (
-                      <p className="text-sm muted-text mb-2">Loading…</p>
-                    ) : recentSessions.length === 0 ? (
-                      <p className="text-sm muted-text mb-2">No sessions yet.</p>
-                    ) : (
-                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
-                        {recentSessions.map((s) => (
-                          <li key={s.id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
-                            <span className="truncate min-w-0">{formatSessionDateTime(s.created_at || `${s.session_date}T00:00:00`)}</span>
-                            <Link href={`${BASE_PATH}/history?sessionId=${s.id}`} className="shrink-0 text-sm text-[var(--color-link)] hover:underline">
-                              View
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </section>
-                  <section>
-                    <h3 className="font-semibold mb-2">Leaderboard</h3>
-                    {loadingLeaderboard ? (
-                      <p className="text-sm muted-text mb-2">Loading…</p>
-                    ) : leaderboardRows.length === 0 ? (
-                      <p className="text-sm muted-text mb-2">No data yet.</p>
-                    ) : (
-                      <>
-                        <ul className="list-none p-0 m-0 mb-3 space-y-1">
-                          {leaderboardRows.map((r) => (
-                            <li key={r.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
-                              <span className="truncate min-w-0">{r.display_name || '—'}</span>
-                              <span className="shrink-0 text-sm">{fmt(r.total_profit)}{editingGroup?.currency ? ` ${editingGroup.currency}` : ''}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <Link href={`${BASE_PATH}/leaderboard`} className="text-sm text-[var(--color-link)] hover:underline">
-                          View full leaderboard
-                        </Link>
-                      </>
-                    )}
-                  </section>
-
-                  <section>
-                    <h3 className="font-semibold mb-2">Invitation link</h3>
-                    <p className="text-sm muted-text mb-2">Share this link so others can join the group. Anyone with the link can join if they are signed in.</p>
-                    {typeof window !== 'undefined' && editingGroupId && editingGroup && (
-                      <div className="flex gap-2 items-center flex-wrap">
-                        <input
-                          readOnly
-                          type="text"
-                          className="input-field flex-1 min-w-0 font-mono text-sm"
-                          value={editingGroup.invite_code
-                            ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
-                            : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
-                          aria-label="Group invitation link"
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-primary whitespace-nowrap"
-                          onClick={async () => {
-                            const url = editingGroup.invite_code
-                              ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
-                              : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
-                            try {
-                              await navigator.clipboard.writeText(url);
-                              setCopiedInvite(true);
-                              setTimeout(() => setCopiedInvite(false), 2000);
-                            } catch {
-                              const el = document.querySelector<HTMLInputElement>('input[aria-label="Group invitation link"]');
-                              el?.select();
-                            }
-                          }}
-                        >
-                          {copiedInvite ? 'Copied!' : 'Copy link'}
+                    <ul className="list-none p-0 m-0 space-y-1">
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('settings')}>
+                          Group settings
                         </button>
-                      </div>
-                    )}
+                      </li>
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('players')}>
+                          Players
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('recent-games')}>
+                          Recent games
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('leaderboard')}>
+                          Leaderboard
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" className="btn btn-secondary w-full text-left" onClick={() => setSubModal('invite')}>
+                          Invitation link
+                        </button>
+                      </li>
+                    </ul>
                   </section>
 
                   <section className="pt-3 border-t border-panel">
@@ -602,6 +465,164 @@ export function GroupsPanel() {
                   </section>
                 </>
               )}
+            </div>
+          )}
+
+          {view === 'edit' && editingGroup && subModal && (
+            <div className="modal active" role="dialog" aria-modal="true" aria-labelledby="group-submodal-title">
+              <div className="modal-overlay" onClick={() => setSubModal(null)} />
+              <div className="modal-content" role="document">
+                <div className="modal-header">
+                  <button type="button" className="modal-back" onClick={() => setSubModal(null)} aria-label="Back to group">
+                    <svg className="modal-back-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M15 5l-7 7 7 7" />
+                    </svg>
+                  </button>
+                  <h2 id="group-submodal-title" className="modal-title">
+                    {subModal === 'settings' && 'Group settings'}
+                    {subModal === 'players' && 'Players'}
+                    {subModal === 'recent-games' && 'Recent games'}
+                    {subModal === 'leaderboard' && 'Leaderboard'}
+                    {subModal === 'invite' && 'Invitation link'}
+                  </h2>
+                  <button type="button" className="modal-close" onClick={() => setSubModal(null)} aria-label="Close">✕</button>
+                </div>
+                <div className="modal-body">
+                  {subModal === 'settings' && (
+                    <form onSubmit={(e) => { e.preventDefault(); handleSaveSettings(e).then(() => setSubModal(null)).catch(() => {}); }} className="space-y-3">
+                      <label className="settings-field block">
+                        <span className="settings-label">Name</span>
+                        <input className="input-field w-full" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+                      </label>
+                      <label className="settings-field block">
+                        <span className="settings-label">Currency</span>
+                        <select className="input-field w-full" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                          {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </label>
+                      <label className="settings-field block">
+                        <span className="settings-label">Default buy-in</span>
+                        <input className="input-field w-full" type="text" value={defaultBuyIn} onChange={(e) => setDefaultBuyIn(e.target.value)} />
+                      </label>
+                      <label className="settings-field block">
+                        <span className="settings-label">Settlement mode</span>
+                        <select className="input-field w-full" value={settlementMode} onChange={(e) => setSettlementMode(e.target.value as 'greedy' | 'banker')}>
+                          {SETTLEMENT_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                        </select>
+                      </label>
+                      <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save settings'}</button>
+                    </form>
+                  )}
+                  {subModal === 'players' && (
+                    <>
+                      {isCreator && <p className="text-sm muted-text mb-3">Members appear in the &quot;usual suspects&quot; list when this group is selected.</p>}
+                      {!isCreator && <p className="text-sm muted-text mb-3">You are a member of this group.</p>}
+                      {members.length === 0 ? (
+                        <p className="text-sm muted-text">No members yet.</p>
+                      ) : (
+                        <ul className="list-none p-0 m-0 space-y-1">
+                          {members.map((m) => {
+                            const role = m.user_id === editingGroup.created_by ? 'owner' : 'member';
+                            return (
+                              <li key={m.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                                <span className="truncate min-w-0">{m.name}</span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-xs px-2 py-0.5 rounded muted-text bg-[rgba(255,255,255,0.06)]">{role}</span>
+                                  {isCreator && role === 'member' && (
+                                    <button type="button" className="w-5 h-5 flex items-center justify-center rounded hover:bg-[rgba(255,255,255,0.1)] muted-text hover:text-[var(--color-text)] text-sm" onClick={() => handleRemoveMember(m.user_id)} disabled={submitting} aria-label={`Remove ${m.name}`}>
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                  {subModal === 'recent-games' && (
+                    <>
+                      {loadingSessions ? (
+                        <p className="text-sm muted-text">Loading…</p>
+                      ) : recentSessions.length === 0 ? (
+                        <p className="text-sm muted-text">No sessions yet.</p>
+                      ) : (
+                        <ul className="list-none p-0 m-0 space-y-1">
+                          {recentSessions.map((s) => (
+                            <li key={s.id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                              <span className="truncate min-w-0">{formatSessionDateTime(s.created_at || `${s.session_date}T00:00:00`)}</span>
+                              <Link href={`${BASE_PATH}/history?sessionId=${s.id}`} className="shrink-0 text-sm text-[var(--color-link)] hover:underline" onClick={() => setSubModal(null)}>
+                                View
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                  {subModal === 'leaderboard' && (
+                    <>
+                      {loadingLeaderboard ? (
+                        <p className="text-sm muted-text">Loading…</p>
+                      ) : leaderboardRows.length === 0 ? (
+                        <p className="text-sm muted-text">No data yet.</p>
+                      ) : (
+                        <>
+                          <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                            {leaderboardRows.map((r) => (
+                              <li key={r.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                                <span className="truncate min-w-0">{r.display_name || '—'}</span>
+                                <span className="shrink-0 text-sm">{fmt(r.total_profit)}{editingGroup?.currency ? ` ${editingGroup.currency}` : ''}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <Link href={`${BASE_PATH}/leaderboard`} className="text-sm text-[var(--color-link)] hover:underline" onClick={() => setSubModal(null)}>
+                            View full leaderboard
+                          </Link>
+                        </>
+                      )}
+                    </>
+                  )}
+                  {subModal === 'invite' && editingGroupId && editingGroup && (
+                    <>
+                      <p className="text-sm muted-text mb-3">Share this link so others can join the group. Anyone with the link can join if they are signed in.</p>
+                      {typeof window !== 'undefined' && (
+                        <div className="flex gap-2 items-center flex-wrap">
+                          <input
+                            readOnly
+                            type="text"
+                            className="input-field flex-1 min-w-0 font-mono text-sm"
+                            value={editingGroup.invite_code
+                              ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
+                              : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
+                            aria-label="Group invitation link"
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-primary whitespace-nowrap"
+                            onClick={async () => {
+                              const url = editingGroup.invite_code
+                                ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
+                                : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
+                              try {
+                                await navigator.clipboard.writeText(url);
+                                setCopiedInvite(true);
+                                setTimeout(() => setCopiedInvite(false), 2000);
+                              } catch {
+                                const el = document.querySelector<HTMLInputElement>('input[aria-label="Group invitation link"]');
+                                el?.select();
+                              }
+                            }}
+                          >
+                            {copiedInvite ? 'Copied!' : 'Copy link'}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
