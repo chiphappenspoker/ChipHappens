@@ -1,16 +1,30 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import { useGroups } from '@/hooks/useGroups';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { BASE_PATH, getSiteOrigin } from '@/lib/constants';
+import { getRepository } from '@/lib/data/sync-repository';
+import { getGroupLeaderboard } from '@/lib/data/stats';
+import { fmt } from '@/lib/calc/formatting';
+import type { DbGameSession, LeaderboardRow } from '@/lib/types';
 
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 const SETTLEMENT_MODES = [
   { value: 'greedy', label: 'Peer-to-peer (fewer transactions)' },
   { value: 'banker', label: 'Banker (collect & distribute)' },
 ] as const;
+
+function formatSessionDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { dateStyle: 'medium' });
+  } catch {
+    return iso;
+  }
+}
 
 export function GroupsPanel() {
   const { closeSettingsModal, setActivePanel, initialGroupsView, setInitialGroupsView } = useSettings();
@@ -44,6 +58,10 @@ export function GroupsPanel() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState(false);
   const [copiedInvite, setCopiedInvite] = useState(false);
+  const [recentSessions, setRecentSessions] = useState<DbGameSession[]>([]);
+  const [leaderboardRows, setLeaderboardRows] = useState<LeaderboardRow[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
   const isCreator = useMemo(
     () => Boolean(editingGroup && user && editingGroup.created_by === user.id),
@@ -85,6 +103,46 @@ export function GroupsPanel() {
       loadMembers().catch(() => setMembers([]));
     }
   }, [view, loadMembers]);
+
+  useEffect(() => {
+    if (view !== 'edit' || !editingGroupId || !user) {
+      setRecentSessions([]);
+      setLeaderboardRows([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingSessions(true);
+    setLoadingLeaderboard(true);
+    const repo = getRepository(!!user);
+    repo
+      .getGameSessionsForUser({ groupId: editingGroupId })
+      .then((sessions) => {
+        if (cancelled) return;
+        const sorted = [...sessions].sort(
+          (a, b) => (b.session_date > a.session_date ? 1 : b.session_date < a.session_date ? -1 : 0)
+        );
+        setRecentSessions(sorted.slice(0, 10));
+      })
+      .catch(() => {
+        if (!cancelled) setRecentSessions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingSessions(false);
+      });
+    getGroupLeaderboard(editingGroupId)
+      .then((rows) => {
+        if (!cancelled) setLeaderboardRows(rows.slice(0, 5));
+      })
+      .catch(() => {
+        if (!cancelled) setLeaderboardRows([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLeaderboard(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [view, editingGroupId, user]);
 
   // When opened via "Create group" from Select group modal, show New group form
   useEffect(() => {
@@ -318,6 +376,47 @@ export function GroupsPanel() {
                       </ul>
                     )}
                   </section>
+                  <section>
+                    <h3 className="font-semibold mb-2">Recent games</h3>
+                    {loadingSessions ? (
+                      <p className="text-sm muted-text mb-2">Loading…</p>
+                    ) : recentSessions.length === 0 ? (
+                      <p className="text-sm muted-text mb-2">No sessions yet.</p>
+                    ) : (
+                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                        {recentSessions.map((s) => (
+                          <li key={s.id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                            <span className="truncate min-w-0">{formatSessionDate(s.session_date)}</span>
+                            <Link href={`${BASE_PATH}/history/${s.id}`} className="shrink-0 text-sm text-[var(--color-link)] hover:underline">
+                              View
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-2">Leaderboard</h3>
+                    {loadingLeaderboard ? (
+                      <p className="text-sm muted-text mb-2">Loading…</p>
+                    ) : leaderboardRows.length === 0 ? (
+                      <p className="text-sm muted-text mb-2">No data yet.</p>
+                    ) : (
+                      <>
+                        <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                          {leaderboardRows.map((r) => (
+                            <li key={r.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                              <span className="truncate min-w-0">{r.display_name || '—'}</span>
+                              <span className="shrink-0 text-sm">{fmt(r.total_profit)}{editingGroup?.currency ? ` ${editingGroup.currency}` : ''}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <Link href={`${BASE_PATH}/leaderboard`} className="text-sm text-[var(--color-link)] hover:underline">
+                          View full leaderboard
+                        </Link>
+                      </>
+                    )}
+                  </section>
                   <section className="pt-3 border-t border-[var(--color-outline)]">
                     <h3 className="font-semibold mb-2">Leave group</h3>
                     <p className="text-sm muted-text mb-2">You will no longer see this group or its players in the app.</p>
@@ -391,6 +490,48 @@ export function GroupsPanel() {
                           );
                         })}
                       </ul>
+                    )}
+                  </section>
+
+                  <section>
+                    <h3 className="font-semibold mb-2">Recent games</h3>
+                    {loadingSessions ? (
+                      <p className="text-sm muted-text mb-2">Loading…</p>
+                    ) : recentSessions.length === 0 ? (
+                      <p className="text-sm muted-text mb-2">No sessions yet.</p>
+                    ) : (
+                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                        {recentSessions.map((s) => (
+                          <li key={s.id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                            <span className="truncate min-w-0">{formatSessionDate(s.session_date)}</span>
+                            <Link href={`${BASE_PATH}/history/${s.id}`} className="shrink-0 text-sm text-[var(--color-link)] hover:underline">
+                              View
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-2">Leaderboard</h3>
+                    {loadingLeaderboard ? (
+                      <p className="text-sm muted-text mb-2">Loading…</p>
+                    ) : leaderboardRows.length === 0 ? (
+                      <p className="text-sm muted-text mb-2">No data yet.</p>
+                    ) : (
+                      <>
+                        <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                          {leaderboardRows.map((r) => (
+                            <li key={r.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                              <span className="truncate min-w-0">{r.display_name || '—'}</span>
+                              <span className="shrink-0 text-sm">{fmt(r.total_profit)}{editingGroup?.currency ? ` ${editingGroup.currency}` : ''}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <Link href={`${BASE_PATH}/leaderboard`} className="text-sm text-[var(--color-link)] hover:underline">
+                          View full leaderboard
+                        </Link>
+                      </>
                     )}
                   </section>
 
