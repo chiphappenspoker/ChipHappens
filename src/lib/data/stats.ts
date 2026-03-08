@@ -142,14 +142,35 @@ export async function getGroupLeaderboard(
     avg_profit?: number;
     max_session_profit?: number;
   }>;
-  return rows.map((r) => ({
-    user_id: r.user_id,
-    display_name: r.display_name ?? '',
-    total_profit: Number(r.total_profit),
-    total_sessions: Number(r.total_sessions),
-    win_count: Number(r.win_count),
-    loss_count: Number(r.loss_count),
-    avg_profit: Number(r.avg_profit ?? 0),
-    max_session_profit: Number(r.max_session_profit ?? 0),
-  }));
+  return rows.map((r) => {
+    const total_profit = Number(r.total_profit);
+    const total_sessions = Number(r.total_sessions);
+    const avg_profitRaw = Number(r.avg_profit ?? 0);
+    const max_session_profitRaw = Number(r.max_session_profit ?? 0);
+    // When migration (avg_profit/max_session_profit) is not applied, RPC returns only 6 columns → we get 0.
+    // Derive avg_profit from totals so "PnL per session" shows; max_session_profit requires the migration.
+    const avg_profit =
+      avg_profitRaw !== 0
+        ? avg_profitRaw
+        : total_sessions > 0
+          ? total_profit / total_sessions
+          : 0;
+    // Only derive when exactly one session (then largest = total); else requires migration.
+    const max_session_profit =
+      max_session_profitRaw !== 0
+        ? max_session_profitRaw
+        : total_sessions === 1 && total_profit > 0
+          ? total_profit
+          : 0;
+    return {
+      user_id: r.user_id,
+      display_name: r.display_name ?? '',
+      total_profit,
+      total_sessions,
+      win_count: Number(r.win_count),
+      loss_count: Number(r.loss_count),
+      avg_profit,
+      max_session_profit,
+    };
+  });
 }

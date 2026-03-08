@@ -222,7 +222,7 @@ export default function StatsPage() {
             <p className="muted-text">No sessions in this period.</p>
           ) : (
             <div className="space-y-3">
-              <div className="settings-list" style={{ border: '1px solid var(--color-outline)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-md)' }}>
+              <div className="stats-grid">
                 <div className="flex justify-between settings-field">
                   <span className="muted-text">Sessions</span>
                   <span>{combined.total_sessions}</span>

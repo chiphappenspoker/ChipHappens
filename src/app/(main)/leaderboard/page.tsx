@@ -249,7 +249,7 @@ export default function LeaderboardPage() {
             <div className="leaderboard-carousel" role="region" aria-label="Leaderboard by category">
               <div className="leaderboard-carousel-header">
                 <span className="leaderboard-category-title">
-                  {currentCategory?.label ?? ''} — {categoryIndex + 1} of 5
+                  {currentCategory?.label ?? ''}
                 </span>
               </div>
               <div className="leaderboard-dots" role="tablist" aria-label="Leaderboard category">
@@ -259,7 +259,7 @@ export default function LeaderboardPage() {
                     type="button"
                     role="tab"
                     aria-selected={i === categoryIndex}
-                    aria-label={i === categoryIndex ? `Category ${i + 1} of 5, ${cat.label}` : `Go to ${cat.label}`}
+                    aria-label={i === categoryIndex ? cat.label : `Go to ${cat.label}`}
                     className={`leaderboard-dot ${i === categoryIndex ? 'leaderboard-dot-active' : ''}`}
                     onClick={() => setCategoryIndex(i)}
                   />

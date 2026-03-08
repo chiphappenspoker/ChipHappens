@@ -1,5 +1,8 @@
 -- Extend leaderboard with avg_profit (PnL per session) and max_session_profit (largest PnL in a single session).
 -- Uses the overload (p_from_date, p_group_id, p_to_date) that the client calls.
+-- Must drop first: PostgreSQL does not allow changing return type with create or replace.
+
+drop function if exists public.get_group_leaderboard(date, uuid, date);
 
 create or replace function public.get_group_leaderboard(
   p_from_date date default null,

@@ -580,6 +580,18 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
 .settings-section { display: grid; gap: 12px; margin-bottom: 18px; }
 .settings-list { display: grid; gap: 12px; }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
 .settings-item-btn {
   display: flex;
   flex-direction: column;
@@ -678,7 +690,7 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
 
 /* ── Leaderboard carousel ── */
 .leaderboard-carousel { margin-top: var(--space-md); }
-.leaderboard-carousel-header { margin-bottom: var(--space-sm); }
+.leaderboard-carousel-header { margin-bottom: var(--space-sm); text-align: center; }
 .leaderboard-category-title { font-weight: 700; font-size: 1rem; }
 .leaderboard-dots {
   display: flex;
