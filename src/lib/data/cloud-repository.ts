@@ -1,4 +1,4 @@
-import { Repository, CreateGroupParams, UpdateGroupParams, GroupMemberWithId } from './repository';
+import { Repository, CreateGroupParams, UpdateGroupParams, GroupMemberWithId, GameSessionsForUserFilters } from './repository';
 import { supabase } from '../supabase/client';
 import {
   SettingsData,
@@ -73,6 +73,47 @@ export const cloudRepository: Repository = {
       .order('created_at', { ascending: false });
     if (error) return [];
     return (data ?? []) as DbGameSession[];
+  },
+
+  async getGameSessionsForUser(filters?: GameSessionsForUserFilters): Promise<DbGameSession[]> {
+    const userId = await getCurrentUserId();
+    if (!userId) return [];
+
+    const byId = new Map<string, DbGameSession>();
+
+    const { data: createdData, error: createdError } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('created_by', userId);
+    if (!createdError && createdData?.length) {
+      for (const row of createdData as DbGameSession[]) byId.set(row.id, row);
+    }
+
+    const { data: memberRows } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', userId);
+    const memberGroupIds = (memberRows ?? []).map((r) => r.group_id).filter(Boolean) as string[];
+    if (memberGroupIds.length > 0) {
+      const { data: groupSessions, error: groupError } = await supabase
+        .from('game_sessions')
+        .select('*')
+        .in('group_id', memberGroupIds);
+      if (!groupError && groupSessions?.length) {
+        for (const row of groupSessions as DbGameSession[]) {
+          if (!byId.has(row.id)) byId.set(row.id, row);
+        }
+      }
+    }
+
+    let list = Array.from(byId.values());
+
+    if (filters?.groupId) list = list.filter((s) => s.group_id === filters.groupId);
+    if (filters?.fromDate) list = list.filter((s) => s.session_date >= filters!.fromDate!);
+    if (filters?.toDate) list = list.filter((s) => s.session_date <= filters!.toDate!);
+
+    list.sort((a, b) => (b.created_at > a.created_at ? 1 : b.created_at < a.created_at ? -1 : 0));
+    return list;
   },
 
   async saveGameSession(session: DbGameSession) {

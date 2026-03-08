@@ -22,10 +22,17 @@ export interface GroupMemberWithId {
   user_id: string;
 }
 
+export interface GameSessionsForUserFilters {
+  groupId?: string;
+  fromDate?: string;
+  toDate?: string;
+}
+
 export interface Repository {
   getSettings(): Promise<SettingsData | null>;
   saveSettings(data: SettingsData): Promise<void>;
   getGameSessions(): Promise<DbGameSession[]>;
+  getGameSessionsForUser(filters?: GameSessionsForUserFilters): Promise<DbGameSession[]>;
   saveGameSession(session: DbGameSession): Promise<void>;
   getGamePlayers(sessionId: string): Promise<DbGamePlayer[]>;
   saveGamePlayer(player: DbGamePlayer): Promise<void>;

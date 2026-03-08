@@ -5,7 +5,7 @@ import { enqueue } from '../sync/sync-queue';
 import type { SettingsData } from '../types';
 import type { DbGameSession, DbGamePlayer, DbGroup } from '../types';
 import type { UsualSuspect } from '../types';
-import type { GroupMemberWithId } from './repository';
+import type { GroupMemberWithId, GameSessionsForUserFilters } from './repository';
 
 function isOnline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine;
@@ -22,6 +22,9 @@ const syncRepository: Repository = {
   },
   async getGameSessions() {
     return localRepository.getGameSessions();
+  },
+  async getGameSessionsForUser(filters?: GameSessionsForUserFilters) {
+    return cloudRepository.getGameSessionsForUser(filters);
   },
   async saveGameSession(session: DbGameSession) {
     await localRepository.saveGameSession(session);
