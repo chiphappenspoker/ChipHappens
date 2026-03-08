@@ -15,6 +15,7 @@ export interface DbProfile {
 export interface DbGroup {
   id: string;
   name: string;
+  invite_code: string;
   currency: string;
   default_buy_in: string;
   settlement_mode: string;
@@ -26,6 +27,7 @@ export interface DbGroup {
 export interface DbGroupMember {
   group_id: string;
   user_id: string;
+  role: 'admin' | 'member';
   joined_at: string;
   created_at: string;
   updated_at: string;
@@ -57,6 +59,29 @@ export interface DbGamePlayer {
   created_at: string;
   updated_at: string;
 }
+
+export interface PlayerStats {
+  user_id: string;
+  group_id: string | null;
+  total_sessions: number;
+  total_profit: number;
+  biggest_win: number;
+  biggest_loss: number;
+  win_count: number;
+  loss_count: number;
+  avg_profit: number;
+  last_played: string | null;
+}
+
+export interface LeaderboardRow {
+  user_id: string;
+  display_name: string;
+  total_profit: number;
+  total_sessions: number;
+  win_count: number;
+  loss_count: number;
+}
+
 /* ── Data Models ── */
 
 export interface PayoutRowData {

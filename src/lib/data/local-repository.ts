@@ -1,4 +1,4 @@
-import { Repository, CreateGroupParams, UpdateGroupParams, GroupMemberWithId } from './repository';
+import { Repository, CreateGroupParams, UpdateGroupParams, GroupMemberWithId, GameSessionsForUserFilters } from './repository';
 import { SettingsData, DbGameSession, DbGamePlayer, DbGroup } from '../types';
 import { getLocalStorage, setLocalStorage } from '../storage/local-storage';
 import { SETTINGS_STORAGE_KEY, SESSIONS_STORAGE_KEY, SESSION_PLAYERS_STORAGE_KEY } from '../constants';
@@ -19,6 +19,20 @@ export const localRepository: Repository = {
     if (!useDexie()) return getLocalStorage<DbGameSession[]>(SESSIONS_STORAGE_KEY) ?? [];
     const list = await db.sessions.orderBy('created_at').reverse().toArray();
     return list;
+  },
+  async getGameSessionsForUser(filters?: GameSessionsForUserFilters): Promise<DbGameSession[]> {
+    const list = await this.getGameSessions();
+    if (!filters) return list;
+    let out = list;
+    if (filters.groupId != null) out = out.filter((s) => s.group_id === filters!.groupId);
+    if (filters.fromDate != null) out = out.filter((s) => s.session_date >= filters!.fromDate!);
+    if (filters.toDate != null) out = out.filter((s) => s.session_date <= filters!.toDate!);
+    return out;
+  },
+  async getGameSession(sessionId: string): Promise<DbGameSession | null> {
+    if (useDexie()) return (await db.sessions.get(sessionId)) ?? null;
+    const sessions = getLocalStorage<DbGameSession[]>(SESSIONS_STORAGE_KEY) ?? [];
+    return sessions.find((s) => s.id === sessionId) ?? null;
   },
   async saveGameSession(session) {
     if (!useDexie()) {
@@ -60,6 +74,9 @@ export const localRepository: Repository = {
 
   async getGroups() {
     return []; // local-only: no groups (groups are cloud-only)
+  },
+  async getGroupByInviteCode(): Promise<DbGroup | null> {
+    return Promise.resolve(null);
   },
   async getGroupMembers() {
     return [];

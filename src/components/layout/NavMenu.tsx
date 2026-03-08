@@ -6,11 +6,11 @@ import { useSettings } from '@/hooks/useSettings';
 import { useSelectGroupModal } from '@/hooks/useSelectGroupModal';
 
 interface NavMenuProps {
-  activePage: 'payout' | 'sidepot';
+  activePage?: 'payout' | 'sidepot' | 'history' | 'leaderboard' | 'stats';
   playerNames?: string[];
 }
 
-export function NavMenu({ activePage, playerNames = [] }: NavMenuProps) {
+export function NavMenu({ activePage = 'payout', playerNames = [] }: NavMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { openSettingsModal } = useSettings();
@@ -51,6 +51,15 @@ export function NavMenu({ activePage, playerNames = [] }: NavMenuProps) {
           </Link>
           <Link href={sidePotHref} onClick={() => setOpen(false)}>
             Side Pot Calculator
+          </Link>
+          <Link href="/history" onClick={() => setOpen(false)}>
+            History
+          </Link>
+          <Link href="/leaderboard" onClick={() => setOpen(false)}>
+            Leaderboard
+          </Link>
+          <Link href="/stats" onClick={() => setOpen(false)}>
+            Stats
           </Link>
           <button
             className="menu-link"

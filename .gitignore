@@ -1,6 +1,7 @@
 # My stuff
 *.code-workspace
 .cursor/
+.worktrees
 
 # Logs
 logs
