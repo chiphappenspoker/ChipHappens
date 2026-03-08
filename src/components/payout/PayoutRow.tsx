@@ -1,6 +1,6 @@
 'use client';
 
-import { parseNum } from '@/lib/calc/formatting';
+import { parseNum, fmtOptionalDecimals } from '@/lib/calc/formatting';
 
 interface PayoutRowProps {
   name: string;
@@ -37,8 +37,7 @@ export function PayoutRow({
 }: PayoutRowProps) {
   const inVal = parseNum(buyIn);
   const outVal = parseNum(cashOut);
-  const payoutStr =
-    (Math.round(payout * 100) / 100).toFixed(2).replace('-0.00', '0.00');
+  const payoutStr = fmtOptionalDecimals(payout);
 
   return (
     <tr className={tableLocked ? 'row-locked' : ''}>

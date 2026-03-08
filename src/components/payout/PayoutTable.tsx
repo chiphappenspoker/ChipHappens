@@ -11,7 +11,7 @@ import { PayoutRow } from './PayoutRow';
 import { SettlementPanel } from './SettlementPanel';
 import { useToast } from '@/hooks/useToast';
 import { useSelectGroupModal } from '@/hooks/useSelectGroupModal';
-import { fmt, fmtInt } from '@/lib/calc/formatting';
+import { fmt, fmtInt, fmtOptionalDecimals } from '@/lib/calc/formatting';
 
 export function PayoutTable() {
   const calc = usePayoutCalculator();
@@ -300,10 +300,10 @@ export function PayoutTable() {
                 <tr>
                   <th>Total</th>
                   <th></th>
-                  <th className="payout">{fmtInt(calc.totalIn)}</th>
+                  <th className="payout">{fmtOptionalDecimals(calc.totalIn)}</th>
                   <th></th>
-                  <th className="payout">{fmt(calc.totalOut)}</th>
-                  <th className="payout">{fmt(calc.totalPayout)}</th>
+                  <th className="payout">{fmtOptionalDecimals(calc.totalOut)}</th>
+                  <th className="payout">{fmtOptionalDecimals(calc.totalPayout)}</th>
                 </tr>
               </tfoot>
             </table>
@@ -368,7 +368,7 @@ export function PayoutTable() {
             </div>
             <div className="modal-body">
               <p className="muted-text" style={{ marginBottom: '1rem' }}>
-                {calc.rows.filter((r) => r.name.trim()).length} players · In: {calc.fmtInt(calc.totalIn)} · Out: {calc.fmt(calc.totalOut)}
+                {calc.rows.filter((r) => r.name.trim()).length} players · In: {fmtOptionalDecimals(calc.totalIn)} · Out: {fmtOptionalDecimals(calc.totalOut)}
                 {calc.isBalanced ? ' · Balanced' : ' · Unbalanced'}
               </p>
 

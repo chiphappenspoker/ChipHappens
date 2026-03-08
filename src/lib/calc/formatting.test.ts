@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fmt, fmtInt, parseNum } from './formatting';
+import { fmt, fmtInt, fmtOptionalDecimals, parseNum } from './formatting';
 
 describe('formatting', () => {
   describe('fmt', () => {
@@ -23,6 +23,19 @@ describe('formatting', () => {
     });
     it('converts -0 to 0', () => {
       expect(fmtInt(-0)).toBe('0');
+    });
+  });
+
+  describe('fmtOptionalDecimals', () => {
+    it('omits .00 for whole numbers', () => {
+      expect(fmtOptionalDecimals(30)).toBe('30');
+      expect(fmtOptionalDecimals(0)).toBe('0');
+      expect(fmtOptionalDecimals(-20)).toBe('-20');
+    });
+    it('shows decimals when non-zero', () => {
+      expect(fmtOptionalDecimals(30.5)).toBe('30.50');
+      expect(fmtOptionalDecimals(30.25)).toBe('30.25');
+      expect(fmtOptionalDecimals(-10.99)).toBe('-10.99');
     });
   });
 

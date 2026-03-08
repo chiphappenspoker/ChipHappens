@@ -13,6 +13,16 @@ export function fmtInt(n: number): string {
 }
 
 /**
+ * Format with 2 decimal places when needed; omit .00 for whole numbers.
+ * e.g. 30 → "30", 30.5 → "30.50", -0.00 → "0"
+ */
+export function fmtOptionalDecimals(n: number): string {
+  const rounded = Math.round(n * 100) / 100;
+  if (rounded === Math.round(rounded)) return Math.round(rounded).toString().replace('-0', '0');
+  return rounded.toFixed(2).replace('-0.00', '0.00');
+}
+
+/**
  * Parse a locale-aware numeric string. Handles both 1,000.00 and 1.000,00 formats.
  */
 export function parseNum(v: string | number | null | undefined): number {
