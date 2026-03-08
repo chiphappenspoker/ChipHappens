@@ -594,7 +594,7 @@ export function GroupsPanel() {
                             type="text"
                             className="input-field flex-1 min-w-0 font-mono text-sm"
                             value={editingGroup.invite_code
-                              ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
+                              ? `${getSiteOrigin()}${BASE_PATH}/join?code=${encodeURIComponent(editingGroup.invite_code)}`
                               : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
                             aria-label="Group invitation link"
                           />
@@ -603,7 +603,7 @@ export function GroupsPanel() {
                             className="btn btn-primary whitespace-nowrap"
                             onClick={async () => {
                               const url = editingGroup.invite_code
-                                ? `${getSiteOrigin()}${BASE_PATH}/join/${editingGroup.invite_code}`
+                                ? `${getSiteOrigin()}${BASE_PATH}/join?code=${encodeURIComponent(editingGroup.invite_code)}`
                                 : `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
                               try {
                                 await navigator.clipboard.writeText(url);
