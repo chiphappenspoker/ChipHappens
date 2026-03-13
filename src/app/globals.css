@@ -156,6 +156,7 @@
 .btn-wide { min-width: 120px; }
 /* Same size for New Session, End Session, Add Player, Usual Suspects */
 .btn-session-action { min-width: 150px; }
+.btn-session-action.btn-icon-only { min-width: 0; padding: var(--space-sm) var(--space-md); }
 
 /* ── Form fields ── */
 .input-field,
@@ -249,6 +250,44 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
 /* ── Action row ── */
 .action-row { margin-top: var(--space-lg); text-align: center; }
 .action-buttons { display: inline-flex; gap: var(--space-sm); flex-wrap: wrap; justify-content: center; }
+.action-btn-spacer { width: 44px; flex-shrink: 0; }
+
+/* Payout summary card (replaces Total row) */
+.payout-summary-card { margin-top: var(--space-md); }
+.payout-summary-card .card-content { padding: var(--space-sm) var(--space-md); }
+.payout-summary-card--unbalanced {
+  border-color: rgba(239, 68, 68, 0.6);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.03));
+}
+.payout-summary-card-content {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: space-between;
+  align-items: center;
+}
+.payout-summary-main { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.payout-summary-main-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+.payout-summary-main-value { font-weight: 800; font-size: 1.35rem; line-height: 1.15; }
+.payout-summary-sub {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--color-outline);
+  padding-left: var(--space-md);
+}
+.payout-summary-item { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 3.5rem; }
+.payout-summary-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-muted); }
+.payout-summary-value { font-weight: 600; font-size: 12px; }
+.payout-summary-status.ok { color: var(--color-ok); }
+.payout-summary-status.warn { color: var(--color-warn); }
+.payout-summary-difference { color: var(--color-warn); }
+
 .is-hidden { display: none !important; }
 
 /* ── Settlement / Payment summary ── */
@@ -329,16 +368,6 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
 /* ── Name cells ── */
 .name-cell-wrapper { display: flex; align-items: center; gap: 4px; }
 .name-cell-wrapper .name-input { flex: 1; }
-.name-cell-wrapper input[type="checkbox"] {
-  flex-shrink: 0;
-  cursor: pointer;
-  accent-color: var(--color-ok);
-  margin: 0 4px 0 0;
-  width: 16px;
-  height: 16px;
-}
-.name-cell-wrapper input[type="checkbox"]:not(:checked) { opacity: 0.5; }
-.name-cell-wrapper.hidden-checkboxes input[type="checkbox"] { display: none; }
 
 /* ── Swipe to delete (reveal + animation) ── */
 .swipe-cell { position: relative; }

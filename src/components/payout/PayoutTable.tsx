@@ -18,45 +18,30 @@ export function PayoutTable() {
   const { showToast } = useToast();
   const { user } = useAuth();
   const { setOpenSelectGroupModal } = useSelectGroupModal();
-  const hasOpenedForNoGroupRef = useRef(false);
   const [savingSession, setSavingSession] = useState(false);
   const [endSessionModalOpen, setEndSessionModalOpen] = useState(false);
   /** When false, show New Session; when true (and user), show End Session. Toggles on New Session click and when End Session modal closes. */
   const [sessionInProgress, setSessionInProgress] = useState(false);
 
-  // When user has a group selected, allow auto-open again after they clear
-  useEffect(() => {
-    if (calc.selectedGroupId) hasOpenedForNoGroupRef.current = false;
-  }, [calc.selectedGroupId]);
-
-  // Prompt to select a group when app loads (or returns to payout page) with no group selected
-  useEffect(() => {
-    if (!calc.initialized || calc.selectedGroupId || hasOpenedForNoGroupRef.current) return;
-    hasOpenedForNoGroupRef.current = true;
-    setOpenSelectGroupModal(true);
-  }, [calc.initialized, calc.selectedGroupId, setOpenSelectGroupModal]);
-
   const openEndSessionModal = () => {
-    // "End session" includes settle flow: lock table + show settlement UI
-    if (!calc.checkboxesVisible) calc.toggleSettle();
     setEndSessionModalOpen(true);
   };
 
   const closeEndSessionModal = () => {
     setEndSessionModalOpen(false);
     setSessionInProgress(false);
-    // exit settle mode when leaving end-session flow
-    if (calc.checkboxesVisible) calc.toggleSettle();
   };
+
+  const tableLocked = endSessionModalOpen;
 
   const handleClear = async () => {
     if (calc.currentSessionId) await clearQueueEntriesForSession(calc.currentSessionId);
     calc.clearTable();
-    setOpenSelectGroupModal(true);
   };
 
   const handleNewSessionClick = async () => {
     await handleClear();
+    setOpenSelectGroupModal(true);
     if (user) setSessionInProgress(true);
   };
 
@@ -108,7 +93,7 @@ export function PayoutTable() {
             buy_in: buyIn,
             cash_out: cashOut,
             net_result: cashOut - buyIn,
-            settled: row.settled,
+            settled: row.paid ?? row.settled,
             created_at: now,
             updated_at: now,
           });
@@ -199,15 +184,6 @@ export function PayoutTable() {
               />
             </svg>
           </span>
-          <div
-            className={`status ${calc.isBalanced ? 'ok' : 'warn'}`}
-            aria-live="polite"
-          >
-            <span className="dot" />
-            <span className="status-text">
-              {calc.isBalanced ? 'Balanced' : 'Unbalanced'}
-            </span>
-          </div>
           <span className="spacer" />
           <OptionsDropdown onShare={handleShare} />
         </div>
@@ -232,7 +208,7 @@ export function PayoutTable() {
                           <button
                             className="btn btn-secondary btn-session-action"
                             type="button"
-                            disabled={calc.tableLocked}
+                            disabled={tableLocked}
                             onClick={handleNewSessionClick}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                           >
@@ -250,7 +226,7 @@ export function PayoutTable() {
                         <button
                           className="btn btn-secondary btn-session-action"
                           type="button"
-                          disabled={calc.tableLocked || calc.rows.length === 0}
+                          disabled={tableLocked || calc.rows.length === 0}
                           onClick={openEndSessionModal}
                         >
                           🏁 End session
@@ -268,7 +244,7 @@ export function PayoutTable() {
                           type="text"
                           inputMode="numeric"
                           value={calc.buyIn}
-                          disabled={calc.tableLocked}
+                          disabled={tableLocked}
                           onChange={(e) => calc.setBuyIn(e.target.value)}
                           onClick={(e) =>
                             (e.target as HTMLInputElement).select()
@@ -293,51 +269,72 @@ export function PayoutTable() {
                     name={row.name}
                     buyIn={row.buyIn}
                     cashOut={row.cashOut}
-                    settled={row.settled}
                     paid={row.paid ?? false}
                     payout={calc.payouts[i] ?? 0}
-                    checkboxesVisible={calc.checkboxesVisible}
-                    tableLocked={calc.tableLocked}
+                    tableLocked={tableLocked}
                     onUpdateName={(v) => calc.updateRow(i, 'name', v)}
                     onUpdateBuyIn={(v) => calc.updateRow(i, 'buyIn', v)}
                     onUpdateCashOut={(v) => calc.updateRow(i, 'cashOut', v)}
-                    onUpdateSettled={(v) => calc.updateRow(i, 'settled', v)}
                     onAdjust={(delta) => calc.adjustBuyIn(i, delta)}
                     onDelete={() => calc.removeRow(i)}
                     onMarkPaid={() => calc.updateRow(i, 'paid', !row.paid)}
                   />
                 ))}
               </tbody>
-              <tfoot>
-                <tr>
-                  <th>Total</th>
-                  <th className="payout">{fmtOptionalDecimals(calc.totalIn)}</th>
-                  <th className="payout">{fmtOptionalDecimals(calc.totalOut)}</th>
-                  <th className="payout">{fmtOptionalDecimals(calc.totalPayout)}</th>
-                </tr>
-              </tfoot>
             </table>
           </form>
-        </div>
 
         {/* Action Row */}
         <div className="action-row">
           <div className="action-buttons">
             <button
-              className="btn btn-secondary btn-session-action"
+              className="btn btn-secondary btn-session-action btn-icon-only"
               type="button"
-              disabled={calc.tableLocked || calc.rows.length >= 32}
+              disabled={tableLocked || calc.rows.length >= 32}
               onClick={() => calc.addRow()}
+              aria-label="Add player"
             >
-              ➕ Add Player
+              <span aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <line x1="19" y1="8" x2="19" y2="14" />
+                  <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+              </span>
             </button>
             <button
-              className="btn btn-secondary btn-session-action"
+              className="btn btn-secondary btn-session-action btn-icon-only"
               type="button"
-              disabled={calc.tableLocked}
+              disabled={tableLocked}
               onClick={calc.toggleSuspects}
+              aria-label="Usual suspects"
             >
-              👥 Usual Suspects
+              <span aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </span>
+            </button>
+            <span className="action-btn-spacer" aria-hidden="true" />
+            <button
+              className="btn btn-secondary btn-session-action btn-icon-only"
+              type="button"
+              disabled={tableLocked}
+              onClick={handleClear}
+              aria-label="Clear table"
+            >
+              <span aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </span>
             </button>
           </div>
 
@@ -355,6 +352,66 @@ export function PayoutTable() {
               ))}
             </div>
           )}
+        </div>
+
+          {/* Summary card: Total Pot, Balanced/Unbalanced, missing amount, player count */}
+          {(() => {
+            const imbalance = calc.totalIn - calc.totalOut;
+            const imbalanceAbs = Math.abs(imbalance);
+            const imbalanceSign = imbalance >= 0 ? '+' : '-';
+            return (
+          <div
+            className={`payout-summary-card card${!calc.isBalanced ? ' payout-summary-card--unbalanced' : ''}`}
+            aria-live="polite"
+          >
+            <div className="card-content payout-summary-card-content">
+              <div className="payout-summary-main">
+                <span className="payout-summary-main-label">Total pot</span>
+                <span className="payout-summary-main-value">
+                  {fmtOptionalDecimals(calc.totalIn)} {calc.currency}
+                </span>
+              </div>
+              <div className="payout-summary-sub">
+                <div className="payout-summary-item">
+                  <span className="payout-summary-label">Total in</span>
+                  <span className="payout-summary-value">
+                    {fmtOptionalDecimals(calc.totalIn)} {calc.currency}
+                  </span>
+                </div>
+                <div className="payout-summary-item">
+                  <span className="payout-summary-label">Total out</span>
+                  <span className="payout-summary-value">
+                    {fmtOptionalDecimals(calc.totalOut)} {calc.currency}
+                  </span>
+                </div>
+                {!calc.isBalanced && (
+                  <div className="payout-summary-item">
+                    <span className="payout-summary-label">Difference</span>
+                    <span
+                      className="payout-summary-value payout-summary-difference"
+                      title="|Total in − Total out|"
+                    >
+                      {imbalanceSign}{fmtOptionalDecimals(imbalanceAbs)} {calc.currency}
+                    </span>
+                  </div>
+                )}
+                <div className="payout-summary-item">
+                  <span className="payout-summary-label">Status</span>
+                  <span className={`payout-summary-value payout-summary-status ${calc.isBalanced ? 'ok' : 'warn'}`}>
+                    {calc.isBalanced ? 'Balanced' : 'Unbalanced'}
+                  </span>
+                </div>
+                <div className="payout-summary-item">
+                  <span className="payout-summary-label">Players</span>
+                  <span className="payout-summary-value">
+                    {calc.rows.filter((r) => r.name.trim()).length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+            );
+          })()}
         </div>
       </div>
 
