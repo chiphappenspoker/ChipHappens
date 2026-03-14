@@ -446,15 +446,15 @@ export function PayoutTable() {
         const outGtIn = direction === 'out_gt_in';
         const options: { index: RebalanceOptionIndex; label: string }[] = outGtIn
           ? [
-              { index: 0, label: 'Divide difference among all players equally (deduct from out)' },
-              { index: 1, label: 'Divide difference among winners equally (deduct from out)' },
-              { index: 2, label: 'Divide difference among winners by payout share (deduct from out)' },
+              { index: 0, label: 'Divide among all players equally' },
+              { index: 1, label: 'Divide among winners equally' },
+              { index: 2, label: 'Divide among winners proportionally' },
               { index: 3, label: 'Do not rebalance' },
             ]
           : [
-              { index: 0, label: 'Divide difference among all players equally (add to out)' },
-              { index: 1, label: 'Divide difference among losers equally (add to out)' },
-              { index: 2, label: 'Divide difference among losers by payout share (add to out)' },
+              { index: 0, label: 'Divide among all players equally' },
+              { index: 1, label: 'Divide among losers equally' },
+              { index: 2, label: 'Divide among losers proportionally' },
               { index: 3, label: 'Do not rebalance' },
             ];
         return (
@@ -482,15 +482,15 @@ export function PayoutTable() {
               <div className="modal-body">
                 <p className="muted-text" style={{ marginBottom: '1rem' }}>
                   {outGtIn
-                    ? `Out exceeds In by ${fmtOptionalDecimals(diff)} ${calc.currency}. Choose how to rebalance (deduct from outs). No winner will be made negative.`
-                    : `In exceeds Out by ${fmtOptionalDecimals(diff)} ${calc.currency}. Choose how to rebalance (add to outs).`}
+                    ? `Out exceeds In by ${fmtOptionalDecimals(diff)} ${calc.currency}. Rebalance?`
+                    : `In exceeds Out by ${fmtOptionalDecimals(diff)} ${calc.currency}. Rebalance?`}
                 </p>
                 <div className="flex flex-col gap-2">
                   {options.map((opt) => (
                     <button
                       key={opt.index}
                       type="button"
-                      className={`btn w-full text-left ${opt.index === 3 ? 'btn-secondary' : 'btn-primary'}`}
+                      className="btn btn-secondary w-full text-left"
                       onClick={() => handleRebalanceConfirm(opt.index)}
                     >
                       {opt.label}
