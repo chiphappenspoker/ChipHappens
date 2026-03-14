@@ -17,7 +17,7 @@ export function PayoutTable() {
   const calc = usePayoutCalculator();
   const { showToast } = useToast();
   const { user } = useAuth();
-  const { setOpenSelectGroupModal } = useSelectGroupModal();
+  const { setOpenSelectGroupModal, setGroupSelectedCallback } = useSelectGroupModal();
   const [savingSession, setSavingSession] = useState(false);
   const [endSessionModalOpen, setEndSessionModalOpen] = useState(false);
   /** When false, show New Session; when true (and user), show End Session. Toggles on New Session click and when End Session modal closes. */
@@ -40,12 +40,13 @@ export function PayoutTable() {
   const handleClear = async () => {
     if (calc.currentSessionId) await clearQueueEntriesForSession(calc.currentSessionId);
     calc.clearTable();
+    setSessionInProgress(false);
   };
 
   const handleNewSessionClick = async () => {
     await handleClear();
+    setGroupSelectedCallback(() => setSessionInProgress(true));
     setOpenSelectGroupModal(true);
-    if (user) setSessionInProgress(true);
   };
 
   const handleSaveSession = async () => {
@@ -233,7 +234,7 @@ export function PayoutTable() {
                   <PayoutRow
                     key={row.id}
                     name={row.name}
-                    buyIn={row.buyIn}
+                    buyIn={row.name.trim() ? row.buyIn : '0'}
                     cashOut={row.cashOut}
                     paid={row.paid ?? false}
                     payout={calc.payouts[i] ?? 0}
@@ -294,9 +295,10 @@ export function PayoutTable() {
             <button
               className="btn btn-secondary btn-session-action btn-icon-only"
               type="button"
-              disabled={tableLocked}
+              disabled={tableLocked || sessionInProgress}
               onClick={handleNewSessionClick}
               aria-label="New session"
+              title={sessionInProgress ? 'End session (Save or Discard) to start a new session' : undefined}
             >
               <span aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
@@ -392,7 +394,7 @@ export function PayoutTable() {
                 <div className="payout-summary-item">
                   <span className="payout-summary-label">Players</span>
                   <span className="payout-summary-value">
-                    {calc.rows.length}
+                    {calc.rows.filter((r) => r.name.trim()).length}
                   </span>
                 </div>
               </div>
@@ -439,7 +441,7 @@ export function PayoutTable() {
                   type="button"
                   className="btn btn-secondary"
                   disabled={savingSession}
-                  onClick={closeEndSessionModal}
+                  onClick={() => setEndSessionModalOpen(false)}
                 >
                   Discard
                 </button>

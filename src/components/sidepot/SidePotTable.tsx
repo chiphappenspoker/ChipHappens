@@ -273,7 +273,7 @@ export function SidePotTable() {
                   <div className="payout-summary-item">
                     <span className="payout-summary-label">Players</span>
                     <span className="payout-summary-value">
-                      {calc.rows.length}
+                      {calc.rows.filter((r) => r.name.trim()).length}
                     </span>
                   </div>
                 </div>
