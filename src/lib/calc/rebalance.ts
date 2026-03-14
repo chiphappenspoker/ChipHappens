@@ -105,6 +105,59 @@ export function applyRebalance(
   }
 }
 
+/**
+ * If the table is still unbalanced after rebalance (e.g. by one cent due to rounding),
+ * add or remove one cent to/from the biggest loser or winner until balanced.
+ * Returns adjusted newOuts (same length as rows).
+ */
+export function applyRoundingCorrection(
+  rows: PayoutRowData[],
+  newOuts: number[],
+  totalIn: number
+): number[] {
+  const namedIndexes = rows
+    .map((r, i) => (r.name.trim() ? i : -1))
+    .filter((i) => i >= 0);
+  const inVal = rows.map((r) => (r.name.trim() ? parseNum(r.buyIn) : 0));
+  const result = [...newOuts];
+
+  for (let iter = 0; iter < 100; iter++) {
+    const totalOut = namedIndexes.reduce((s, i) => s + result[i], 0);
+    const diff = totalOut - totalIn;
+    if (Math.abs(diff) < 0.005) return result;
+
+    if (diff > 0) {
+      // totalOut too high: deduct 0.01 from biggest winner
+      let bestIdx = -1;
+      let bestPayout = -Infinity;
+      for (const i of namedIndexes) {
+        const payout = result[i] - inVal[i];
+        if (payout > bestPayout && result[i] >= 0.01) {
+          bestPayout = payout;
+          bestIdx = i;
+        }
+      }
+      if (bestIdx >= 0) result[bestIdx] = Math.max(0, result[bestIdx] - 0.01);
+      else break;
+    } else {
+      // totalOut too low: add 0.01 to biggest loser
+      let worstIdx = -1;
+      let worstPayout = Infinity;
+      for (const i of namedIndexes) {
+        const payout = result[i] - inVal[i];
+        if (payout < worstPayout) {
+          worstPayout = payout;
+          worstIdx = i;
+        }
+      }
+      if (worstIdx >= 0) result[worstIdx] += 0.01;
+      else break;
+    }
+  }
+
+  return result;
+}
+
 function redistributeRemainder(
   deduct: number[],
   participants: number[],

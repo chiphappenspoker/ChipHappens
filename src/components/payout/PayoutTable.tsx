@@ -16,6 +16,7 @@ import {
   getRebalanceDirection,
   getRebalanceDifference,
   applyRebalance,
+  applyRoundingCorrection,
   type RebalanceOptionIndex,
   type RebalanceDirection,
 } from '@/lib/calc/rebalance';
@@ -55,7 +56,9 @@ export function PayoutTable() {
         totalOut: calc.totalOut,
         payouts: calc.payouts,
       };
-      const newOuts = applyRebalance(ctx, optionIndex, direction);
+      let newOuts = applyRebalance(ctx, optionIndex, direction);
+      newOuts = newOuts.map((v) => Math.round(v * 100) / 100);
+      newOuts = applyRoundingCorrection(calc.rows, newOuts, calc.totalIn);
       newOuts.forEach((val, i) => {
         calc.updateRow(i, 'cashOut', fmtOptionalDecimals(val));
       });
