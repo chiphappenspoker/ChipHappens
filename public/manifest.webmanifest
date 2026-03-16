@@ -2,9 +2,9 @@
   "name": "ChipHappens: Poker Payout Calculator",
   "short_name": "ChipHappens",
   "description": "Calculate poker cash game payouts and side pots instantly.",
-  "id": "/ChipHappens/",
-  "start_url": "/ChipHappens/",
-  "scope": "/ChipHappens/",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
   "launch_handler": {
     "client_mode": ["navigate-existing", "navigate-new"]
   },
@@ -15,25 +15,25 @@
   "lang": "en",
   "icons": [
     {
-      "src": "/ChipHappens/icons/app_icon.png",
+      "src": "/icons/app_icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/ChipHappens/icons/app_icon.png",
+      "src": "/icons/app_icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/ChipHappens/icons/app_icon.png",
+      "src": "/icons/app_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/ChipHappens/icons/app_icon.png",
+      "src": "/icons/app_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -41,7 +41,7 @@
   ],
   "screenshots": [
     {
-      "src": "/ChipHappens/icons/feature_graphic.png",
+      "src": "/icons/feature_graphic.png",
       "type": "image/png",
       "form_factor": "wide"
     }
@@ -51,8 +51,8 @@
       "name": "Side Pot Calculator",
       "short_name": "Side Pot",
       "description": "Calculate side pots for all-in situations",
-      "url": "/ChipHappens/side-pot",
-      "icons": [{ "src": "/ChipHappens/icons/app_icon.png", "sizes": "192x192" }]
+      "url": "/side-pot",
+      "icons": [{ "src": "/icons/app_icon.png", "sizes": "192x192" }]
     }
   ]
 }
