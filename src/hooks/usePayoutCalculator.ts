@@ -347,17 +347,36 @@ export function usePayoutCalculator() {
     [buyIn]
   );
 
-  /** Set table rows to exactly the selected names; preserves existing row data (buyIn, cashOut) when a name already exists. */
+  /** Merge checked usual suspects with existing rows. Preserves table order: keeps manual players and checked suspects in place, removes unchecked suspects, appends newly checked suspects. */
   const setRowsFromSelectedNames = useCallback(
-    (names: string[]) => {
-      const trimmed = names.map((n) => n.trim()).filter(Boolean);
-      if (trimmed.length === 0) return;
+    (checkedNames: string[], suspectNames: string[]) => {
+      const suspectSet = new Set(
+        suspectNames.map((n) => n.trim().toLowerCase()).filter(Boolean)
+      );
+      const trimmedChecked = checkedNames.map((n) => n.trim()).filter(Boolean);
+      const checkedSet = new Set(
+        trimmedChecked.map((n) => n.toLowerCase())
+      );
       setRows((prev) => {
-        const byName = new Map(prev.map((r) => [r.name.trim().toLowerCase(), r]));
-        return trimmed.map((name) => {
-          const existing = byName.get(name.toLowerCase());
-          if (existing) return { ...existing, name };
-          return {
+        const result: PayoutRowData[] = [];
+        for (const row of prev) {
+          const name = row.name.trim();
+          if (!name) {
+            result.push(row);
+            continue;
+          }
+          if (!suspectSet.has(name.toLowerCase())) {
+            result.push(row);
+            continue;
+          }
+          if (checkedSet.has(name.toLowerCase())) result.push(row);
+        }
+        const existingNames = new Set(
+          result.map((r) => r.name.trim().toLowerCase()).filter(Boolean)
+        );
+        for (const name of trimmedChecked) {
+          if (existingNames.has(name.toLowerCase())) continue;
+          result.push({
             id: generateId(),
             name,
             buyIn: fmtInt(parseNum(buyIn)),
@@ -365,8 +384,10 @@ export function usePayoutCalculator() {
             settled: false,
             paid: false,
             dbPlayerId: undefined,
-          };
-        });
+          });
+          existingNames.add(name.toLowerCase());
+        }
+        return result;
       });
     },
     [buyIn]

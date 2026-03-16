@@ -382,7 +382,7 @@ export function SidePotTable() {
                     const ordered = calc.allSuspects.filter((n) =>
                       suspectsChecked.has(n)
                     );
-                    calc.setRowsFromSelectedNames(ordered);
+                    calc.setRowsFromSelectedNames(ordered, calc.allSuspects);
                     setUsualSuspectsModalOpen(false);
                   }}
                 >
