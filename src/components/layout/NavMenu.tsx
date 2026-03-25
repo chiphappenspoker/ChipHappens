@@ -3,6 +3,14 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useSettings } from '@/hooks/useSettings';
+import {
+  IconHistory,
+  IconLeaderboard,
+  IconPayoutCalculator,
+  IconSettings,
+  IconSidePot,
+  IconStats,
+} from '@/components/ui/MenuIcons';
 
 interface NavMenuProps {
   activePage?: 'payout' | 'sidepot' | 'history' | 'leaderboard' | 'stats';
@@ -45,19 +53,24 @@ export function NavMenu({ activePage = 'payout', playerNames = [] }: NavMenuProp
       {open && (
         <div className="menu-dropdown active">
           <Link href="/" onClick={() => setOpen(false)}>
-            Payout Calculator
+            <IconPayoutCalculator className="menu-item-icon" />
+            <span>Payout Calculator</span>
           </Link>
           <Link href={sidePotHref} onClick={() => setOpen(false)}>
-            Side Pot Calculator
+            <IconSidePot className="menu-item-icon" />
+            <span>Side Pot Calculator</span>
           </Link>
           <Link href="/history" onClick={() => setOpen(false)}>
-            History
+            <IconHistory className="menu-item-icon" />
+            <span>History</span>
           </Link>
           <Link href="/leaderboard" onClick={() => setOpen(false)}>
-            Leaderboard
+            <IconLeaderboard className="menu-item-icon" />
+            <span>Leaderboard</span>
           </Link>
           <Link href="/stats" onClick={() => setOpen(false)}>
-            Stats
+            <IconStats className="menu-item-icon" />
+            <span>Stats</span>
           </Link>
           <button
             className="menu-link"
@@ -67,7 +80,8 @@ export function NavMenu({ activePage = 'payout', playerNames = [] }: NavMenuProp
               openSettingsModal();
             }}
           >
-            Settings
+            <IconSettings className="menu-item-icon" />
+            <span>Settings</span>
           </button>
         </div>
       )}

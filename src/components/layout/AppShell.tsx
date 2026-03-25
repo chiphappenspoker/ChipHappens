@@ -8,8 +8,38 @@ import { SignInModal } from './SignInModal';
 import { SelectGroupModal } from '../payout/SelectGroupModal';
 import { useSettings } from '@/hooks/useSettings';
 import { useSelectGroupModal } from '@/hooks/useSelectGroupModal';
+import { IconLogOut, IconUser } from '@/components/ui/MenuIcons';
 
 const PROFILE_ONBOARDING_KEY = 'chiphappens:profile_onboarding';
+
+function initialsFromIdentity(profileName: string | undefined, email: string | undefined): string {
+  const name = profileName?.trim();
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      const a = parts[0].match(/[a-zA-Z0-9]/);
+      const b = parts[parts.length - 1].match(/[a-zA-Z0-9]/);
+      if (a && b) return (a[0] + b[0]).toUpperCase();
+    }
+    const letters = name.replace(/[^a-zA-Z0-9]/g, '');
+    if (letters.length >= 2) return letters.slice(0, 2).toUpperCase();
+    if (letters.length === 1) return letters.toUpperCase();
+  }
+  const em = email?.trim();
+  if (em) {
+    const local = em.split('@')[0] || '';
+    const segments = local.split(/[._+-]/).filter(Boolean);
+    if (segments.length >= 2) {
+      const a = segments[0].match(/[a-zA-Z0-9]/);
+      const b = segments[segments.length - 1].match(/[a-zA-Z0-9]/);
+      if (a && b) return (a[0] + b[0]).toUpperCase();
+    }
+    const alnum = local.replace(/[^a-zA-Z0-9]/g, '');
+    if (alnum.length >= 2) return alnum.slice(0, 2).toUpperCase();
+    if (alnum.length === 1) return alnum.toUpperCase();
+  }
+  return '?';
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
 
@@ -54,6 +84,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return user?.email || 'Account';
   }
 
+  const avatarInitials = initialsFromIdentity(settings?.profile?.name, user?.email);
+
   return (
     <>
       {!user && (
@@ -67,52 +99,54 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {user && (
         <div ref={accountMenuRef} className="fixed top-3 right-3 z-50">
           <button
+            type="button"
             className="flex items-center justify-center w-10 h-10 rounded-full bg-[#d4a832] text-[#18181b] shadow border-2 border-[#bfa12a] hover:brightness-110 focus:outline-none"
             onClick={() => setAccountMenuOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={accountMenuOpen}
-            title="Account"
+            aria-label={`Account menu, ${getDisplayName()}`}
+            title={getDisplayName()}
           >
-            {/* Poker chip avatar SVG */}
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="14" cy="14" r="13" fill="#fff" stroke="#18181b" strokeWidth="2"/>
-              <circle cx="14" cy="14" r="8" fill="#d4a832" stroke="#18181b" strokeWidth="2"/>
-              <circle cx="14" cy="14" r="4" fill="#fff" stroke="#18181b" strokeWidth="1.5"/>
-              <g stroke="#18181b" strokeWidth="2">
-                <line x1="14" y1="1" x2="14" y2="5" />
-                <line x1="14" y1="23" x2="14" y2="27" />
-                <line x1="1" y1="14" x2="5" y2="14" />
-                <line x1="23" y1="14" x2="27" y2="14" />
-                <line x1="5.8" y1="5.8" x2="8.6" y2="8.6" />
-                <line x1="19.4" y1="19.4" x2="22.2" y2="22.2" />
-                <line x1="5.8" y1="22.2" x2="8.6" y2="19.4" />
-                <line x1="19.4" y1="8.6" x2="22.2" y2="5.8" />
-              </g>
-            </svg>
+            <span
+              className={`font-bold leading-none select-none tracking-tight ${
+                avatarInitials.length === 1 ? 'text-lg' : 'text-sm'
+              }`}
+              aria-hidden="true"
+            >
+              {avatarInitials}
+            </span>
           </button>
           {accountMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-[#18181b] text-white rounded shadow-lg border border-[#333] overflow-hidden">
-              <div className="px-4 py-3 border-b border-[#333] text-sm font-semibold bg-[#232323]">
-                {/* Show user's name if available, else email */}
+            <div
+              className="absolute right-0 mt-2 w-56 overflow-hidden rounded-lg border border-[var(--color-outline)] bg-[#1a1a1f] text-[var(--color-accent)] shadow-[0_4px_12px_rgba(0,0,0,0.5)] z-[1000]"
+              role="menu"
+            >
+              <div className="border-b border-[var(--color-outline)] bg-[#232323] px-4 py-3 text-[15px] font-medium">
                 {getDisplayName()}
               </div>
               <button
-                className="block w-full text-left px-4 py-2 hover:bg-[#232323]"
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2.5 border-b border-[var(--color-outline)] px-4 py-3 text-left text-[15px] font-medium text-[var(--color-accent)] transition-colors hover:bg-[#23232a]"
                 onClick={() => {
                   setProfileOpen(true);
                   setAccountMenuOpen(false);
                 }}
               >
-                Profile
+                <IconUser className="shrink-0" />
+                <span className="whitespace-nowrap">Profile</span>
               </button>
               <button
-                className="block w-full text-left px-4 py-2 hover:bg-[#232323]"
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[15px] font-medium text-[var(--color-accent)] transition-colors hover:bg-[#23232a]"
                 onClick={async () => {
                   setAccountMenuOpen(false);
                   await signOut();
                 }}
               >
-                Sign Out
+                <IconLogOut className="shrink-0" />
+                <span className="whitespace-nowrap">Sign Out</span>
               </button>
             </div>
           )}

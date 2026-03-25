@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSidePotCalculator } from '@/hooks/useSidePotCalculator';
 import { NavMenu } from '@/components/layout/NavMenu';
+import { IconShare } from '@/components/ui/MenuIcons';
 import { SidePotRow } from './SidePotRow';
 import { PotDisplay } from './PotDisplay';
 import { useToast } from '@/hooks/useToast';
@@ -399,7 +400,13 @@ export function SidePotTable() {
 
 /* ── Options dropdown (share) ── */
 
-function OptionsDropdown({ onShare }: { onShare: () => void }) {
+function OptionsDropdown({
+  onShare,
+  onOpenSettings,
+}: {
+  onShare: () => void;
+  onOpenSettings: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -435,7 +442,8 @@ function OptionsDropdown({ onShare }: { onShare: () => void }) {
               onShare();
             }}
           >
-            ↗️ Share
+            <IconShare className="menu-item-icon" />
+            <span>Share</span>
           </button>
         </div>
       )}

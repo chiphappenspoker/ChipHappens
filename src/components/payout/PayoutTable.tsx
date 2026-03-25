@@ -7,6 +7,7 @@ import { getRepository } from '@/lib/data/sync-repository';
 import { clearQueueEntriesForSession } from '@/lib/sync/sync-queue';
 import { parseNum } from '@/lib/calc/formatting';
 import { NavMenu } from '@/components/layout/NavMenu';
+import { IconShare } from '@/components/ui/MenuIcons';
 import { PayoutRow } from './PayoutRow';
 import { SettlementPanel } from './SettlementPanel';
 import { useToast } from '@/hooks/useToast';
@@ -759,7 +760,8 @@ function OptionsDropdown({ onShare }: { onShare: () => void }) {
               onShare();
             }}
           >
-            ↗️ Share
+            <IconShare className="menu-item-icon" />
+            <span>Share</span>
           </button>
         </div>
       )}
