@@ -38,9 +38,14 @@ export function clearStoredSessionGeneration(userId: string): void {
  */
 export async function bumpSessionGenerationAndStore(userId: string): Promise<void> {
   if (isSupabasePlaceholder || typeof window === 'undefined') return;
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return;
+
   const { data, error } = await supabase.rpc('bump_session_generation');
   if (error) {
-    console.warn('[ChipHappens] bump_session_generation failed', error.message);
+    if (error.message !== 'Not authenticated') {
+      console.warn('[ChipHappens] bump_session_generation failed', error.message);
+    }
     return;
   }
   const gen = typeof data === 'number' ? data : Number(data);
