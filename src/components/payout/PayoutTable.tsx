@@ -97,8 +97,8 @@ export function PayoutTable() {
     }
   };
 
-  const handleSaveSession = async () => {
-    if (!user?.id || calc.rows.length === 0) return;
+  const handleSaveSession = async (): Promise<boolean> => {
+    if (!user?.id || calc.rows.length === 0) return false;
     setSavingSession(true);
     try {
       const repo = getRepository(true);
@@ -164,8 +164,10 @@ export function PayoutTable() {
 
       calc.setSavedSession(sessionId, playerIds);
       showToast(isNewSession ? 'Session saved' : 'Session updated');
+      return true;
     } catch {
       showToast('Failed to save session');
+      return false;
     } finally {
       setSavingSession(false);
     }
@@ -614,11 +616,9 @@ export function PayoutTable() {
                   className="btn btn-primary"
                   disabled={savingSession}
                   onClick={async () => {
-                    try {
-                      await handleSaveSession();
+                    const saved = await handleSaveSession();
+                    if (saved) {
                       closeEndSessionModal();
-                    } catch {
-                      /* toast already shown */
                     }
                   }}
                 >

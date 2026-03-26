@@ -52,7 +52,7 @@ export const cloudRepository: Repository = {
   async saveSettings(data: SettingsData) {
     const userId = await getCurrentUserId();
     if (!userId) return;
-    await supabase
+    const { error } = await supabase
       .from('profiles')
       .upsert(
         {
@@ -67,6 +67,7 @@ export const cloudRepository: Repository = {
         },
         { onConflict: 'id' }
       );
+    if (error) throw error;
   },
 
   async getGameSessions() {
@@ -133,7 +134,7 @@ export const cloudRepository: Repository = {
   },
 
   async saveGameSession(session: DbGameSession) {
-    await supabase.from('game_sessions').upsert(
+    const { error } = await supabase.from('game_sessions').upsert(
       {
         id: session.id,
         created_by: session.created_by,
@@ -148,6 +149,7 @@ export const cloudRepository: Repository = {
       },
       { onConflict: 'id' }
     );
+    if (error) throw error;
   },
 
   async getGamePlayers(sessionId: string) {
@@ -160,7 +162,7 @@ export const cloudRepository: Repository = {
   },
 
   async saveGamePlayer(player: DbGamePlayer) {
-    await supabase.from('game_players').upsert(
+    const { error } = await supabase.from('game_players').upsert(
       {
         id: player.id,
         session_id: player.session_id,
@@ -173,10 +175,12 @@ export const cloudRepository: Repository = {
       },
       { onConflict: 'id' }
     );
+    if (error) throw error;
   },
 
   async deleteGamePlayer(playerId: string, _sessionId: string) {
-    await supabase.from('game_players').delete().eq('id', playerId);
+    const { error } = await supabase.from('game_players').delete().eq('id', playerId);
+    if (error) throw error;
   },
 
   async getGroupByInviteCode(inviteCode: string): Promise<DbGroup | null> {
