@@ -10,9 +10,9 @@ import { EntitlementsProvider } from '@/lib/entitlements/EntitlementsProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <EntitlementsProvider>
-      <ToastProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <EntitlementsProvider>
         <GroupsProvider>
           <SettingsProvider>
             <SelectGroupModalProvider>
@@ -20,8 +20,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             </SelectGroupModalProvider>
           </SettingsProvider>
         </GroupsProvider>
-      </ToastProvider>
-      </EntitlementsProvider>
-    </AuthProvider>
+        </EntitlementsProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }

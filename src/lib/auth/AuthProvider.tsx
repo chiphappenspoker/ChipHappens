@@ -3,6 +3,7 @@ import { supabase, isSupabasePlaceholder } from '../supabase/client';
 import { BASE_PATH } from '../constants';
 import { startSyncEngine, stopSyncEngine } from '../sync/sync-engine';
 import { migrateLocalToCloud, needsMigration } from './migrate-local-to-cloud';
+import { useToast } from '@/hooks/useToast';
 import {
   bumpSessionGenerationAndStore,
   clearStoredSessionGeneration,
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const lastSignedInUserIdRef = useRef<string | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -70,7 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === 'SIGNED_IN') {
             await bumpSessionGenerationAndStore(session.user.id);
           } else if (event === 'INITIAL_SESSION') {
-            await validateSessionGeneration(session.user.id);
+            const result = await validateSessionGeneration(session.user.id);
+            if (result === 'kicked') {
+              showToast('Signed out: your account was signed in on another device.');
+              await supabase.auth.signOut();
+            }
           }
           startSyncEngine();
         } else {
@@ -102,7 +108,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!uid) return;
 
     const run = () => {
-      void validateSessionGeneration(uid);
+      void (async () => {
+        const result = await validateSessionGeneration(uid);
+        if (result === 'kicked') {
+          showToast('Signed out: your account was signed in on another device.');
+          await supabase.auth.signOut();
+        }
+      })();
     };
 
     const onVisibility = () => {
@@ -118,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('online', run);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [user?.id]);
+  }, [user?.id, showToast]);
 
   const wrapAuthError = (message: string): string => {
     if (isSupabasePlaceholder && (message === 'Failed to fetch' || message.includes('fetch')))

@@ -30,7 +30,8 @@ export function PayoutTable() {
   const calc = usePayoutCalculator();
   const { showToast } = useToast();
   const { user } = useAuth();
-  const { setOpenSelectGroupModal, setGroupSelectedCallback } = useSelectGroupModal();
+  const { openSelectGroupModal, setOpenSelectGroupModal, setGroupSelectedCallback, clearGroupSelectedCallback } =
+    useSelectGroupModal();
   const [savingSession, setSavingSession] = useState(false);
   const [endSessionModalOpen, setEndSessionModalOpen] = useState(false);
   /** When false, show New Session; when true (and user), show End Session. Toggles on New Session click and when End Session modal closes. */
@@ -75,6 +76,12 @@ export function PayoutTable() {
   };
 
   const tableLocked = endSessionModalOpen || rebalanceModalOpen;
+
+  const openGroupPicker = () => {
+    if (tableLocked) return;
+    clearGroupSelectedCallback();
+    setOpenSelectGroupModal(true);
+  };
 
   const handleClear = async () => {
     if (calc.currentSessionId) await clearQueueEntriesForSession(calc.currentSessionId);
@@ -247,9 +254,21 @@ export function PayoutTable() {
           <div className="card-content buyin-card-content">
             <div className="buyin-card-main">
               <span className="buyin-card-main-label">Group</span>
-              <span className="buyin-card-main-value">
+              <button
+                type="button"
+                className="buyin-card-main-value buyin-card-group-picker"
+                disabled={tableLocked}
+                onClick={openGroupPicker}
+                aria-haspopup="dialog"
+                aria-expanded={openSelectGroupModal}
+                aria-label={
+                  calc.selectedGroup
+                    ? `Group ${calc.selectedGroup.name}. Tap to choose a different group.`
+                    : `${SOLO_TABLE_LABEL}. Tap to choose a group.`
+                }
+              >
                 {calc.selectedGroup ? calc.selectedGroup.name : SOLO_TABLE_LABEL}
-              </span>
+              </button>
             </div>
             <div className="buyin-card-sub">
               <div className="buyin-card-item">

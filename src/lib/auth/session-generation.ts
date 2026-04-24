@@ -81,7 +81,6 @@ export async function validateSessionGeneration(userId: string): Promise<'ok' | 
   const stored = Number(storedRaw);
   if (!Number.isFinite(stored) || stored !== dbGen) {
     clearStoredSessionGeneration(userId);
-    await supabase.auth.signOut();
     return 'kicked';
   }
 
