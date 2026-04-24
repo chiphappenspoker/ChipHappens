@@ -10,18 +10,16 @@ import { EntitlementsProvider } from '@/lib/entitlements/EntitlementsProvider';
 /** Same providers as Providers but without AppShell. Use for standalone pages (e.g. activate). */
 export function ProvidersNoShell({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <EntitlementsProvider>
-      <ToastProvider>
-        <GroupsProvider>
-          <SettingsProvider>
-            <SelectGroupModalProvider>
-              {children}
-            </SelectGroupModalProvider>
-          </SettingsProvider>
-        </GroupsProvider>
-      </ToastProvider>
-      </EntitlementsProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <EntitlementsProvider>
+          <GroupsProvider>
+            <SettingsProvider>
+              <SelectGroupModalProvider>{children}</SelectGroupModalProvider>
+            </SettingsProvider>
+          </GroupsProvider>
+        </EntitlementsProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
