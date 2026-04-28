@@ -19,7 +19,7 @@ export const MIGRATION_FLAG_KEY = 'poker-migrated:v1';
 export const BASE_PATH = '';
 
 /** Label when a session or calculator is not tied to a group (UI copy). */
-export const SOLO_TABLE_LABEL = 'Solo table';
+export const SOLO_TABLE_LABEL = 'Ad Hoc';
 
 /**
  * Origin (protocol + host) for invite and other share links. Set NEXT_PUBLIC_SITE_URL in env

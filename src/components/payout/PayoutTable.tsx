@@ -90,7 +90,13 @@ export function PayoutTable() {
   };
 
   const proceedNewSession = async () => {
+    const previousGroupId = calc.selectedGroupId;
     await handleClear();
+    if (previousGroupId) {
+      calc.setSelectedGroupId(previousGroupId);
+      setSessionInProgress(true);
+      return;
+    }
     setGroupSelectedCallback(() => setSessionInProgress(true));
     setOpenSelectGroupModal(true);
   };
