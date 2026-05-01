@@ -1,29 +1,43 @@
 import { describe, it, expect } from 'vitest';
-import { formatLeaderboardRank } from './leaderboard-rank';
+import { formatLeaderboardRank, getLeaderboardStartingHand } from './leaderboard-rank';
 
 describe('formatLeaderboardRank', () => {
-  it('returns A for rank 1', () => {
-    expect(formatLeaderboardRank(1)).toBe('A');
+  it('returns AA for rank 1', () => {
+    expect(formatLeaderboardRank(1)).toBe('AA');
   });
-  it('returns K,Q,J for ranks 2,3,4', () => {
-    expect(formatLeaderboardRank(2)).toBe('K');
-    expect(formatLeaderboardRank(3)).toBe('Q');
-    expect(formatLeaderboardRank(4)).toBe('J');
+  it('returns ranked preflop hand codes', () => {
+    expect(formatLeaderboardRank(4)).toBe('JJ');
+    expect(formatLeaderboardRank(7)).toBe('AKs');
+    expect(formatLeaderboardRank(169)).toBe('32o');
   });
-  it('returns 10,9,8,7,6,5,4,3,2 for ranks 5-13', () => {
-    expect(formatLeaderboardRank(5)).toBe('10');
-    expect(formatLeaderboardRank(6)).toBe('9');
-    expect(formatLeaderboardRank(7)).toBe('8');
-    expect(formatLeaderboardRank(8)).toBe('7');
-    expect(formatLeaderboardRank(9)).toBe('6');
-    expect(formatLeaderboardRank(10)).toBe('5');
-    expect(formatLeaderboardRank(11)).toBe('4');
-    expect(formatLeaderboardRank(12)).toBe('3');
-    expect(formatLeaderboardRank(13)).toBe('2');
+  it('returns numeric string for rank 170 and above', () => {
+    expect(formatLeaderboardRank(170)).toBe('170');
+    expect(formatLeaderboardRank(199)).toBe('199');
   });
-  it('returns numeric string for rank 14 and above', () => {
-    expect(formatLeaderboardRank(14)).toBe('14');
-    expect(formatLeaderboardRank(15)).toBe('15');
-    expect(formatLeaderboardRank(99)).toBe('99');
+
+  it('returns two-card metadata for ranked hands', () => {
+    expect(getLeaderboardStartingHand(1)).toEqual({
+      handCode: 'AA',
+      cards: [
+        { shortRank: 'A', suitSymbol: '♠', suitName: 'Spades', suitColor: 'black' },
+        { shortRank: 'A', suitSymbol: '♥', suitName: 'Hearts', suitColor: 'red' },
+      ],
+      fullName: 'Pocket Aces',
+    });
+    const aks = getLeaderboardStartingHand(7);
+    expect(aks?.handCode).toBe('AKs');
+    expect(aks?.cards[0].suitSymbol).toBe(aks?.cards[1].suitSymbol);
+    expect(aks?.cards[0].suitColor).toBe(aks?.cards[1].suitColor);
+    expect(aks?.cards[0].suitSymbol).toBe('♠');
+    expect(aks?.cards[0].suitColor).toBe('black');
+    expect(getLeaderboardStartingHand(9)?.handCode).toBe('AKo');
+    expect(getLeaderboardStartingHand(9)?.cards[0].suitSymbol).toBe('♠');
+    expect(getLeaderboardStartingHand(9)?.cards[1].suitSymbol).toBe('♥');
+    expect(getLeaderboardStartingHand(9)?.cards[0].suitColor).toBe('black');
+    expect(getLeaderboardStartingHand(9)?.cards[1].suitColor).toBe('red');
+  });
+
+  it('returns null hand metadata after rank 169', () => {
+    expect(getLeaderboardStartingHand(170)).toBeNull();
   });
 });

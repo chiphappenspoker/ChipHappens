@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import { useGroups } from '@/hooks/useGroups';
 import { getGroupLeaderboard } from '@/lib/data/stats';
 import { fmt } from '@/lib/calc/formatting';
-import { formatLeaderboardRank } from '@/lib/calc/leaderboard-rank';
+import { getLeaderboardStartingHand } from '@/lib/calc/leaderboard-rank';
 import { useEffect, useRef, useState } from 'react';
 import type { LeaderboardRow } from '@/lib/types';
 import { NavMenu } from '@/components/layout/NavMenu';
@@ -77,6 +77,27 @@ function getRowsForCategory(rows: LeaderboardRow[], categoryId: CategoryId): Lea
   const cat = LEADERBOARD_CATEGORIES.find((c) => c.id === categoryId);
   if (!cat) return [];
   return rows.slice().sort(cat.sort);
+}
+
+function RankCell({ rank }: { rank: number }) {
+  const hand = getLeaderboardStartingHand(rank);
+  if (!hand) return <span>{String(rank)}</span>;
+  return (
+    <span className="leaderboard-rank-hand" aria-label={hand.fullName} title={hand.fullName}>
+      {hand.cards.map((card, idx) => (
+        <span
+          key={`${hand.handCode}-${idx}`}
+          className={`leaderboard-rank-card leaderboard-rank-card-${idx} leaderboard-rank-suit-${card.suitColor}`}
+        >
+          <span className="leaderboard-rank-card-corner">
+            {card.shortRank}
+            <span aria-hidden="true">{card.suitSymbol}</span>
+          </span>
+        </span>
+      ))}
+      <span className="sr-only">{hand.handCode}</span>
+    </span>
+  );
 }
 
 export default function LeaderboardPage() {
@@ -317,7 +338,9 @@ export default function LeaderboardPage() {
                 <tbody>
                   {displayRows.map((row, index) => (
                     <tr key={row.user_id}>
-                      <td>{formatLeaderboardRank(index + 1)}</td>
+                      <td>
+                        <RankCell rank={index + 1} />
+                      </td>
                       <td>{row.display_name || '—'}</td>
                       <td className="text-right tabular-nums">
                         {currentCategory?.id === 'total_pnl' &&
