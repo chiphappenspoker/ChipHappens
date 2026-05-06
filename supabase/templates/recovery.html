@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reset your ChipHappens password</title>
+</head>
+<body style="margin: 0; font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; background-color: #09090b; color: #fafafa; min-height: 100vh;">
+  <div style="max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <img src="{{ .SiteURL }}/icons/app_icon.png" alt="ChipHappens" width="64" height="64" style="display: block; margin: 0 auto 12px; border-radius: 12px;" />
+      <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #fafafa;">ChipHappens</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; color: #b6b0a5;">Poker Cash Game Calculator</p>
+    </div>
+
+    <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+      <h2 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #fafafa;">Reset your password</h2>
+      <p style="margin: 0 0 20px; color: #fafafa;">Use the button below to choose a new password.</p>
+      <p style="margin: 0 0 24px;">
+        <!--
+          IMPORTANT: link directly to your app with TokenHash so email-link scanners don't consume
+          the single-use /auth/v1/verify token. The app will call verifyOtp() client-side.
+        -->
+        <a
+          href="{{ .SiteURL }}/reset-password?type=recovery&token_hash={{ .TokenHash }}"
+          style="display: inline-block; background-color: #d4a832; color: #18181b; text-decoration: none; font-weight: 600; padding: 12px 24px; border-radius: 8px;"
+        >Reset password</a>
+      </p>
+      <p style="margin: 0; font-size: 13px; color: #b6b0a5;">
+        If you didn’t request a password reset, you can ignore this email.
+      </p>
+    </div>
+
+    <p style="margin: 0; font-size: 12px; color: #b6b0a5; text-align: center;">
+      If the button doesn’t work, open this URL in your browser:<br />
+      <span style="word-break: break-all;">{{ .SiteURL }}/reset-password?type=recovery&token_hash={{ .TokenHash }}</span>
+    </p>
+  </div>
+</body>
+</html>
+

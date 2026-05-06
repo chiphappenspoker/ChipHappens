@@ -89,6 +89,13 @@ Other templates (invite, recovery, magic link, etc.) can be customized the same 
 
 **Password reset:** The app sends users to `/reset-password` on your deployed origin (see `getPasswordResetRedirectUrl()`). In the Dashboard, open **Authentication → URL Configuration** and add that full URL (for example `https://your-domain.example/reset-password`) to **Redirect URLs**, alongside your `/activate` URL.
 
+**Password reset “link expired” (common):** Many email clients / security gateways *pre-open* links to scan them. Supabase’s default recovery link hits `.../auth/v1/verify?...type=recovery`, and that token is **single-use**, so scanning can consume it before the user clicks.
+
+Mitigation: customize the **Reset Password** email template to link to your app using `{{ .TokenHash }}`, and let the app call `verifyOtp()` client-side:
+
+- **Dashboard → Authentication → Email Templates → Reset Password**: set the body to match `supabase/templates/recovery.html`.
+- Ensure the URL configuration allows your deployed origin, and that `NEXT_PUBLIC_SITE_URL` matches it.
+
 ## Troubleshooting: group members visible locally but not on PWA
 
 If the group creator sees invited members on the local/dev site but not in the deployed PWA (and the user exists in `group_members` and `profiles` in Supabase):

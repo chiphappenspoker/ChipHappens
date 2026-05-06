@@ -21,6 +21,7 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [allowed, setAllowed] = useState(recoveryTokensPresent());
+  const [verifying, setVerifying] = useState(false);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +36,35 @@ export default function ResetPasswordPage() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const run = async () => {
+      const search = new URLSearchParams(window.location.search);
+      const token_hash = search.get('token_hash') ?? '';
+      const type = search.get('type') ?? '';
+
+      // Scanner-resistant flow: recovery email links to our app with token_hash,
+      // then we verify via an API call (scanners won't consume it via a GET).
+      if (type === 'recovery' && token_hash && !user) {
+        setVerifying(true);
+        const { error: verifyErr } = await supabase.auth.verifyOtp({
+          type: 'recovery',
+          token_hash,
+        });
+        setVerifying(false);
+        if (verifyErr) {
+          setError(verifyErr.message);
+          return;
+        }
+        setAllowed(true);
+      }
+    };
+
+    void run();
+    // user is included so we don't re-verify once a session exists.
+  }, [user]);
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -60,7 +90,7 @@ export default function ResetPasswordPage() {
     [password, confirm, router, homeHref]
   );
 
-  if (authLoading) {
+  if (authLoading || verifying) {
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
@@ -69,7 +99,7 @@ export default function ResetPasswordPage() {
           color: 'var(--color-text)',
         }}
       >
-        <p className="muted-text">Loading…</p>
+        <p className="muted-text">{verifying ? 'Verifying reset link…' : 'Loading…'}</p>
       </div>
     );
   }
