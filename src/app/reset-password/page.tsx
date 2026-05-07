@@ -7,6 +7,23 @@ import { supabase } from '@/lib/supabase/client';
 import { BASE_PATH } from '@/lib/constants';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M3 13c2.2-3 5.2-4.5 9-4.5s6.8 1.5 9 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M5 16.2 7 14.4M9.3 17.7l1-2.3M14.7 17.7l-1-2.3M19 16.2 17 14.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function recoveryTokensPresent(): boolean {
   if (typeof window === 'undefined') return false;
   const hash = window.location.hash.startsWith('#')
@@ -24,6 +41,8 @@ export default function ResetPasswordPage() {
   const [verifying, setVerifying] = useState(false);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -144,30 +163,52 @@ export default function ResetPasswordPage() {
           Signed in as <span className="text-[var(--color-text)]">{user.email}</span>. Enter your new password below.
         </p>
         <form onSubmit={onSubmit} className="flex flex-col gap-2 text-left">
-          <input
-            type="password"
-            placeholder="New password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            autoComplete="new-password"
-            className="ch-input"
-            name="password"
-            id="reset-password-new"
-          />
-          <input
-            type="password"
-            placeholder="Confirm new password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-            minLength={6}
-            autoComplete="new-password"
-            className="ch-input"
-            name="confirm"
-            id="reset-password-confirm"
-          />
+          <div className="relative w-full">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="New password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+              className="ch-input pr-10"
+              name="password"
+              id="reset-password-new"
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              title={showPassword ? 'Hide password' : 'Show password'}
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(v => !v)}
+            >
+              <EyeIcon open={showPassword} />
+            </button>
+          </div>
+          <div className="relative w-full">
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              placeholder="Confirm new password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+              className="ch-input pr-10"
+              name="confirm"
+              id="reset-password-confirm"
+            />
+            <button
+              type="button"
+              aria-label={showConfirm ? 'Hide password' : 'Show password'}
+              title={showConfirm ? 'Hide password' : 'Show password'}
+              className="password-toggle-btn"
+              onClick={() => setShowConfirm(v => !v)}
+            >
+              <EyeIcon open={showConfirm} />
+            </button>
+          </div>
           {error && <div className="text-red-500 text-sm">{error}</div>}
           <button type="submit" className="ch-btn mt-1" disabled={submitting}>
             {submitting ? 'Updating…' : 'Update password'}

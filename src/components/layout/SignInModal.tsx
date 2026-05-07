@@ -2,16 +2,35 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { getPasswordResetRedirectUrl } from '@/lib/auth/auth-redirect-urls';
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M3 13c2.2-3 5.2-4.5 9-4.5s6.8 1.5 9 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M5 16.2 7 14.4M9.3 17.7l1-2.3M14.7 17.7l-1-2.3M19 16.2 17 14.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 
 export function SignInModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { signIn, signUp, signInWithGoogle, user, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
     // Always show sign-in screen when modal is opened
     useEffect(() => {
       if (open) {
         setMode('signin');
+        setShowPassword(false);
         setInfo(null);
         setError(null);
       }
@@ -85,16 +104,27 @@ export function SignInModal({ open, onClose }: { open: boolean; onClose: () => v
             id="sign-in-email"
           />
           {mode !== 'reset' && (
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="ch-input"
-              name="password"
-              id="sign-in-password"
-            />
+            <div className="relative w-full">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                className="ch-input pr-10"
+                name="password"
+                id="sign-in-password"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                className="password-toggle-btn"
+                onClick={() => setShowPassword(v => !v)}
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
           )}
           {error && <div className="text-red-500 text-sm">{error}</div>}
           {info && <div className="text-green-600 text-sm">{info}</div>}

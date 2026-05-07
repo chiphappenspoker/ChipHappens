@@ -20,11 +20,51 @@
   box-shadow: 0 2px 16px #0008;
 }
 .ch-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 32px;
   padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-outline);
+  background: #141418;
+  color: var(--color-text);
+}
+.ch-input:focus {
+  outline: 1px solid rgba(212, 168, 50, 0.5);
+  outline-offset: 0;
+}
+.ch-input:-webkit-autofill,
+.ch-input:-webkit-autofill:hover,
+.ch-input:-webkit-autofill:focus,
+.input-field:-webkit-autofill,
+.input-field:-webkit-autofill:hover,
+.input-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px #141418 inset;
+  box-shadow: 0 0 0 1000px #141418 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+.password-toggle-btn:hover { color: var(--color-accent); opacity: 0.9; }
+.password-toggle-btn:focus-visible {
+  outline: 1px solid rgba(212, 168, 50, 0.5);
   border-radius: 4px;
-  border: 1px solid #333;
-  background: #222;
-  color: #fff;
 }
 .ch-btn {
   background: #d4a832;
@@ -47,6 +87,22 @@
   text-decoration: underline;
 }
 @import "tailwindcss";
+
+/* Keep auth modal/reset inputs aligned with app field styling (overrides preflight). */
+.ch-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-outline);
+  background: #141418;
+  color: var(--color-text);
+}
+.ch-input:focus {
+  outline: 1px solid rgba(212, 168, 50, 0.5);
+  outline-offset: 0;
+}
 
 /* ── Design tokens ── */
 @theme {
