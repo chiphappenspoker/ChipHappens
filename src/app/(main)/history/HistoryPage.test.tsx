@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import HistoryPage from './page';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useGroups } from '@/hooks/useGroups';
@@ -55,15 +55,18 @@ vi.mock('./SessionDetailContent', () => ({
 }));
 
 describe('HistoryPage', () => {
+  const setFiltersMock = vi.fn();
+
   beforeEach(() => {
+    setFiltersMock.mockReset();
     mockGet.mockImplementation((key: string) => (key === 'sessionId' ? null : null));
     vi.mocked(useGroups).mockReturnValue({ groups: [], loading: false, reload: vi.fn() });
     vi.mocked(useGameHistory).mockReturnValue({
       sessions: [],
       loading: false,
       error: null,
-      filters: { groupId: null, fromDate: '', toDate: '' },
-      setFilters: vi.fn(),
+      filters: { groupId: null, fromDate: '', toDate: '', participantUserId: null },
+      setFilters: setFiltersMock,
       reload: vi.fn(),
     });
     vi.mocked(useAuth).mockReturnValue({
@@ -135,8 +138,8 @@ describe('HistoryPage', () => {
       ],
       loading: false,
       error: null,
-      filters: { groupId: null, fromDate: '', toDate: '' },
-      setFilters: vi.fn(),
+      filters: { groupId: null, fromDate: '', toDate: '', participantUserId: null },
+      setFilters: setFiltersMock,
       reload: vi.fn(),
     });
     render(<HistoryPage />);
@@ -144,6 +147,101 @@ describe('HistoryPage', () => {
       'href',
       '/history?sessionId=s1'
     );
+  });
+
+  it('defaults to requesting only sessions where user participated', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'u1' } as unknown as import('@supabase/supabase-js').User,
+      loading: false,
+      signIn: vi.fn(),
+      signOut: vi.fn(),
+    });
+    vi.mocked(useGameHistory).mockReturnValue({
+      sessions: [
+        {
+          id: 's1',
+          session_date: '2026-03-01',
+          group_id: null,
+          currency: 'EUR',
+          created_by: 'u1',
+          default_buy_in: '30',
+          settlement_mode: 'greedy',
+          status: 'settled',
+          share_code: '',
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 's2',
+          session_date: '2026-03-02',
+          group_id: null,
+          currency: 'USD',
+          created_by: 'u2',
+          default_buy_in: '30',
+          settlement_mode: 'greedy',
+          status: 'settled',
+          share_code: '',
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+      loading: false,
+      error: null,
+      filters: { groupId: null, fromDate: '', toDate: '', participantUserId: null },
+      setFilters: setFiltersMock,
+      reload: vi.fn(),
+    });
+    render(<HistoryPage />);
+    const onlyMineCheckbox = screen.getByRole('checkbox', { name: /show only my sessions/i });
+    expect(onlyMineCheckbox).toBeChecked();
+    expect(setFiltersMock).toHaveBeenCalledWith({ participantUserId: 'u1' });
+  });
+
+  it('requests all sessions when only-my-sessions is toggled off', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'u1' } as unknown as import('@supabase/supabase-js').User,
+      loading: false,
+      signIn: vi.fn(),
+      signOut: vi.fn(),
+    });
+    vi.mocked(useGameHistory).mockReturnValue({
+      sessions: [
+        {
+          id: 's1',
+          session_date: '2026-03-01',
+          group_id: null,
+          currency: 'EUR',
+          created_by: 'u1',
+          default_buy_in: '30',
+          settlement_mode: 'greedy',
+          status: 'settled',
+          share_code: '',
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 's2',
+          session_date: '2026-03-02',
+          group_id: null,
+          currency: 'USD',
+          created_by: 'u2',
+          default_buy_in: '30',
+          settlement_mode: 'greedy',
+          status: 'settled',
+          share_code: '',
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+      loading: false,
+      error: null,
+      filters: { groupId: null, fromDate: '', toDate: '', participantUserId: null },
+      setFilters: setFiltersMock,
+      reload: vi.fn(),
+    });
+    render(<HistoryPage />);
+    fireEvent.click(screen.getByRole('checkbox', { name: /show only my sessions/i }));
+    expect(setFiltersMock).toHaveBeenCalledWith({ participantUserId: null });
   });
 
   it('displays session detail view when sessionId is in URL', () => {

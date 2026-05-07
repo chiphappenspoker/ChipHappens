@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { localRepository } from './local-repository';
 import { setLocalStorage } from '../storage/local-storage';
-import { SESSIONS_STORAGE_KEY } from '../constants';
+import { SESSIONS_STORAGE_KEY, SESSION_PLAYERS_STORAGE_KEY } from '../constants';
 import type { DbGameSession } from '../types';
 
 function makeSession(
@@ -91,6 +91,47 @@ describe('localRepository', () => {
       setLocalStorage(SESSIONS_STORAGE_KEY, sessions);
       const result = await localRepository.getGameSessionsForUser();
       expect(result).toHaveLength(1);
+    });
+
+    it('applies participantUserId filter from game_players rows', async () => {
+      const sessions: DbGameSession[] = [
+        makeSession('s1', null, '2026-03-01', '2026-03-01T10:00:00Z'),
+        makeSession('s2', null, '2026-03-02', '2026-03-02T10:00:00Z'),
+      ];
+      setLocalStorage(SESSIONS_STORAGE_KEY, sessions);
+      setLocalStorage(SESSION_PLAYERS_STORAGE_KEY, {
+        s1: [
+          {
+            id: 'p1',
+            session_id: 's1',
+            user_id: 'u1',
+            player_name: 'U1',
+            buy_in: 30,
+            cash_out: 40,
+            net_result: 10,
+            settled: true,
+            created_at: '2026-03-01T10:00:00Z',
+            updated_at: '2026-03-01T10:00:00Z',
+          },
+        ],
+        s2: [
+          {
+            id: 'p2',
+            session_id: 's2',
+            user_id: 'u2',
+            player_name: 'U2',
+            buy_in: 30,
+            cash_out: 20,
+            net_result: -10,
+            settled: true,
+            created_at: '2026-03-02T10:00:00Z',
+            updated_at: '2026-03-02T10:00:00Z',
+          },
+        ],
+      });
+
+      const result = await localRepository.getGameSessionsForUser({ participantUserId: 'u1' });
+      expect(result.map((s) => s.id)).toEqual(['s1']);
     });
   });
 });

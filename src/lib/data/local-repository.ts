@@ -24,6 +24,26 @@ export const localRepository: Repository = {
     const list = await this.getGameSessions();
     if (!filters) return list;
     let out = list;
+    if (filters.participantUserId) {
+      if (!useDexie()) {
+        const all = getLocalStorage<Record<string, DbGamePlayer[]>>(SESSION_PLAYERS_STORAGE_KEY) ?? {};
+        const matchingSessionIds = new Set<string>();
+        for (const [sessionId, players] of Object.entries(all)) {
+          if (players.some((player) => player.user_id === filters.participantUserId)) {
+            matchingSessionIds.add(sessionId);
+          }
+        }
+        out = out.filter((session) => matchingSessionIds.has(session.id));
+      } else {
+        const players = await db.players.toArray();
+        const matchingSessionIds = new Set(
+          players
+            .filter((player) => player.user_id === filters.participantUserId)
+            .map((player) => player.session_id)
+        );
+        out = out.filter((session) => matchingSessionIds.has(session.id));
+      }
+    }
     if (filters.groupId != null) out = out.filter((s) => s.group_id === filters!.groupId);
     if (filters.fromDate != null) out = out.filter((s) => s.session_date >= filters!.fromDate!);
     if (filters.toDate != null) out = out.filter((s) => s.session_date <= filters!.toDate!);

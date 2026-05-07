@@ -34,6 +34,24 @@ const syncRepository: Repository = {
     if (filters?.groupId) list = list.filter((s) => s.group_id === filters.groupId);
     if (filters?.fromDate) list = list.filter((s) => s.session_date >= filters!.fromDate!);
     if (filters?.toDate) list = list.filter((s) => s.session_date <= filters!.toDate!);
+    if (filters?.participantUserId) {
+      const [localPlayersBySession, cloudPlayersBySession] = await Promise.all([
+        Promise.all(localList.map((session) => localRepository.getGamePlayers(session.id))),
+        Promise.all(cloudList.map((session) => cloudRepository.getGamePlayers(session.id))),
+      ]);
+      const participantSessionIds = new Set<string>();
+      localList.forEach((session, index) => {
+        if (localPlayersBySession[index].some((player) => player.user_id === filters.participantUserId)) {
+          participantSessionIds.add(session.id);
+        }
+      });
+      cloudList.forEach((session, index) => {
+        if (cloudPlayersBySession[index].some((player) => player.user_id === filters.participantUserId)) {
+          participantSessionIds.add(session.id);
+        }
+      });
+      list = list.filter((session) => participantSessionIds.has(session.id));
+    }
     list.sort((a, b) => (b.created_at > a.created_at ? 1 : b.created_at < a.created_at ? -1 : 0));
     return list;
   },

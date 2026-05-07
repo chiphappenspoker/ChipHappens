@@ -13,12 +13,14 @@ export interface GameHistoryFilters {
   groupId: string | null;
   fromDate: string;
   toDate: string;
+  participantUserId: string | null;
 }
 
 const defaultFilters: GameHistoryFilters = {
   groupId: null,
   fromDate: '',
   toDate: '',
+  participantUserId: null,
 };
 
 function getInitialFilters(): GameHistoryFilters {
@@ -78,6 +80,7 @@ export function useGameHistory() {
         groupId: effectiveFilters.groupId ?? undefined,
         fromDate: effectiveFilters.fromDate || undefined,
         toDate: effectiveFilters.toDate || undefined,
+        participantUserId: effectiveFilters.participantUserId ?? undefined,
       });
       if (tier === 'free') {
         list = sortSessionsNewestFirst(list).slice(0, FREE_TIER_HISTORY_DISPLAY_CAP);
@@ -89,7 +92,15 @@ export function useGameHistory() {
     } finally {
       setLoading(false);
     }
-  }, [user, entitlementsLoading, tier, effectiveFilters.groupId, effectiveFilters.fromDate, effectiveFilters.toDate]);
+  }, [
+    user,
+    entitlementsLoading,
+    tier,
+    effectiveFilters.groupId,
+    effectiveFilters.fromDate,
+    effectiveFilters.toDate,
+    effectiveFilters.participantUserId,
+  ]);
 
   useEffect(() => {
     if (!user) {

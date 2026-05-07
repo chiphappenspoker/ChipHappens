@@ -26,6 +26,7 @@ export interface GameSessionsForUserFilters {
   groupId?: string;
   fromDate?: string;
   toDate?: string;
+  participantUserId?: string;
 }
 
 export interface Repository {

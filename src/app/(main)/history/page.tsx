@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthProvider';
@@ -18,6 +18,8 @@ import { NavMenu } from '@/components/layout/NavMenu';
 import { SessionDetailContent } from './SessionDetailContent';
 import { getLocalStorage, setLocalStorage } from '@/lib/storage/local-storage';
 import { PAYOUT_STORAGE_KEY, SELECTED_GROUP_CHANGED_EVENT } from '@/lib/constants';
+
+const HISTORY_ONLY_MY_SESSIONS_KEY = 'historyOnlyMySessions';
 
 function formatSessionDate(iso: string): string {
   try {
@@ -45,7 +47,14 @@ function HistoryPageContent() {
   const { flags, tier } = useEntitlements();
   const { showToast } = useToast();
   const [exporting, setExporting] = useState(false);
+  const [showOnlyMySessions, setShowOnlyMySessions] = useState<boolean>(
+    () => getLocalStorage<boolean>(HISTORY_ONLY_MY_SESSIONS_KEY) ?? true
+  );
   const { sessions, loading, error, filters, setFilters, reload } = useGameHistory();
+
+  useEffect(() => {
+    setFilters({ participantUserId: showOnlyMySessions && user ? user.id : null });
+  }, [setFilters, showOnlyMySessions, user]);
 
   const getGroupName = (groupId: string | null): string => {
     if (!groupId) return SOLO_TABLE_LABEL;
@@ -159,6 +168,21 @@ function HistoryPageContent() {
                   value={filters.toDate}
                   onChange={(e) => setFilters({ toDate: e.target.value })}
                 />
+              </label>
+            </div>
+            <div className="settings-field block">
+              <span className="settings-label">Session visibility</span>
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showOnlyMySessions}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setShowOnlyMySessions(next);
+                    setLocalStorage(HISTORY_ONLY_MY_SESSIONS_KEY, next);
+                  }}
+                />
+                <span>Show only my sessions</span>
               </label>
             </div>
             <div className="flex flex-wrap gap-2">

@@ -118,6 +118,17 @@ export const cloudRepository: Repository = {
     if (filters?.groupId) list = list.filter((s) => s.group_id === filters.groupId);
     if (filters?.fromDate) list = list.filter((s) => s.session_date >= filters!.fromDate!);
     if (filters?.toDate) list = list.filter((s) => s.session_date <= filters!.toDate!);
+    if (filters?.participantUserId) {
+      const { data: playerRows, error: playersError } = await supabase
+        .from('game_players')
+        .select('session_id')
+        .eq('user_id', filters.participantUserId);
+      if (playersError) return [];
+      const participatedSessionIds = new Set(
+        (playerRows ?? []).map((row) => row.session_id).filter(Boolean) as string[]
+      );
+      list = list.filter((s) => participatedSessionIds.has(s.id));
+    }
 
     list.sort((a, b) => (b.created_at > a.created_at ? 1 : b.created_at < a.created_at ? -1 : 0));
     return list;
